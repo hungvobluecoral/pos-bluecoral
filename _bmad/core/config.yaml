@@ -5,6 +5,6 @@
 
 user_name: Hung
 project_name: POS_BlueCoral
-communication_language: English
-document_output_language: English
+communication_language: Vietnamese
+document_output_language: Vietnamese
 output_folder: _bmad-output
