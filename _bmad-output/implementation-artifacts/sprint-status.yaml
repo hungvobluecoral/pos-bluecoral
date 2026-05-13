@@ -1,0 +1,69 @@
+# generated: 2026-05-13T09:49:40.896+07:00
+# last_updated: 2026-05-13T09:49:40.896+07:00
+# project: POS_BlueCoral
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: /home/hung/Desktop/Dev_BlueCoral/POS_BlueCoral/_bmad-output/implementation-artifacts
+#
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: "2026-05-13T09:49:40.896+07:00"
+last_updated: "2026-05-13T10:30:46.822+07:00"
+project: "POS_BlueCoral"
+project_key: "NOKEY"
+tracking_system: "file-system"
+story_location: "/home/hung/Desktop/Dev_BlueCoral/POS_BlueCoral/_bmad-output/implementation-artifacts"
+
+development_status:
+  epic-1: in-progress
+  1-1-set-up-initial-project-from-starter-template: ready-for-dev
+  1-2-tao-tenant-va-branch-dau-tien-voi-nen-du-lieu-dung-scope: ready-for-dev
+  1-3-guided-setup-wizard-voi-scope-header-va-readiness-panel: ready-for-dev
+  1-4-review-guardrails-va-publish-tenant-branch-an-toan: ready-for-dev
+  epic-1-retrospective: optional
+  epic-2: in-progress
+  2-1-dang-nhap-voi-session-gan-tenant-branch-scope: ready-for-dev
+  2-2-tao-staff-va-gan-role-theo-tenant-branch: ready-for-dev
+  2-3-enforce-quyen-va-quan-ly-staff-theo-branch-cho-store-manager: ready-for-dev
+  epic-2-retrospective: optional
+  epic-3: in-progress
+  3-1-quan-ly-tenant-product-catalog-nen: ready-for-dev
+  3-2-gan-product-cho-branch-va-xem-catalog-dung-scope: ready-for-dev
+  3-3-theo-doi-inventory-va-cap-nhat-ton-kho-theo-dung-scope: ready-for-dev
+  epic-3-retrospective: optional
+  epic-4: in-progress
+  4-1-tao-order-trong-branch-dang-hoat-dong: ready-for-dev
+  4-2-giu-order-lifecycle-va-man-xem-order-trong-dung-scope: ready-for-dev
+  4-3-ghi-nhan-payment-cho-order-dung-tenant-branch-scope: ready-for-dev
+  epic-4-retrospective: optional
+  epic-5: in-progress
+  5-1-quan-ly-customer-trong-tenant-scope-va-gan-vao-order: ready-for-dev
+  5-2-tao-promotion-theo-scope-va-ap-dung-vao-order-du-dieu-kien: ready-for-dev
+  epic-5-retrospective: optional
