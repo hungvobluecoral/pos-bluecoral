@@ -1,19 +1,7 @@
 import { CreateTenantEntry } from '../../../features/admin-onboarding/components/create-tenant-entry';
 import { TenantOverviewSection } from '../../../features/dashboard/components/tenant-overview-section';
-import { fetchTenantOverview } from '../../../lib/server/api';
-import type { TenantOverviewResult } from '@pos-bluecoral/contracts';
 
-export default async function DashboardPage() {
-  let overviewData: TenantOverviewResult | null = null;
-  let overviewError: string | null = null;
-
-  try {
-    const response = await fetchTenantOverview();
-    overviewData = response.data;
-  } catch {
-    overviewError = 'Không thể tải danh sách tenant. Vui lòng thử lại.';
-  }
-
+export default function LoadingDashboardPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-10 lg:px-10">
       <header className="space-y-4">
@@ -33,7 +21,7 @@ export default async function DashboardPage() {
 
       <CreateTenantEntry />
 
-      <TenantOverviewSection data={overviewData} error={overviewError} />
+      <TenantOverviewSection data={null} error={null} isLoading />
     </main>
   );
 }

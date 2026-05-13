@@ -1,6 +1,6 @@
 # Story 1.5: Dashboard tenant overview sau onboarding
 
-Status: ready-for-dev
+Status: in-progress
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -30,31 +30,36 @@ so that I can confirm provisioning outcomes and quickly return to the right tena
 
 ## Tasks / Subtasks
 
-- [ ] Bổ sung read contract và backend overview endpoint cho dashboard (AC: 1, 3, 5)
-  - [ ] Mở rộng `libs/contracts/src/tenants/*` với response type tối thiểu cho dashboard overview, ví dụ `totalTenants` + `items[]`, giữ envelope `{ data, meta? }` và dùng camelCase.
-  - [ ] Mở rộng `apps/api/src/modules/tenants/tenants.controller.ts` bằng read endpoint REST-first trong cùng module `tenants`; ưu tiên endpoint đọc rõ ràng như `GET /tenants` hoặc một read subresource nhất quán, không dùng action verb.
-  - [ ] Thêm service/repository read path trong `apps/api/src/modules/tenants/**` để lấy tenant list từ Prisma cùng default branch/config summary cần cho dashboard.
-  - [ ] Trả empty list ổn định khi chưa có tenant; không trả `null`, không trả raw Prisma payload, và giữ Swagger/OpenAPI khớp contract.
-- [ ] Render tenant overview trên dashboard mà vẫn giữ CTA onboarding làm trọng tâm (AC: 1, 2)
-  - [ ] Mở rộng `apps/web/src/app/(admin)/dashboard/page.tsx` để dashboard vừa là landing surface vừa giữ CTA **"Tạo tenant mới"** ở hierarchy nổi bật hiện tại.
-  - [ ] Tách phần tenant overview ra một dashboard-focused boundary rõ ràng dưới `apps/web/src/features/` thay vì trộn logic mới vào onboarding shell hoặc `libs/ui`.
-  - [ ] Hiển thị tối thiểu cho mỗi tenant item: tenant name, tenant slug, branch đầu tiên/default branch, và trạng thái summary đủ để xác nhận provisioning outcome mà không biến dashboard thành CRUD screen đầy đủ.
-- [ ] Thiết kế action cho từng tenant item theo context đang thật sự tồn tại trong source (AC: 4)
-  - [ ] Vì Story 1.4 hiện mới ở `ready-for-dev` và chưa có source review summary/publish screen, **không** link sang route/flow chưa tồn tại.
-  - [ ] Ưu tiên action an toàn như **"Xem tóm tắt"** mở summary card/drawer/sheet read-only ngay trên dashboard để admin xem lại tenant + branch context đã provision.
-  - [ ] Nếu bổ sung thêm action điều hướng, chỉ dùng route/context đã tồn tại thật trong source; không tạo dangling navigation.
-- [ ] Xử lý loading, empty và error states mà không làm vỡ layout admin hiện tại (AC: 3)
-  - [ ] Giữ shell/header/CTA ổn định khi data đang load hoặc lỗi; tránh layout shift lớn.
-  - [ ] Empty state phải vẫn nhấn mạnh CTA tạo tenant mới thay vì tạo cảm giác dashboard "trống hẳn".
-  - [ ] Error state phải ngắn, rõ, có khả năng retry nếu phù hợp, và không che mất CTA chính.
-- [ ] Khóa chiến lược transport web -> API cho dashboard overview trước khi code UI fetch (AC: 5)
-  - [ ] Hiện repo **chưa có** Next route handler/rewrite cho `/api/*`, trong khi `apps/web/src/features/admin-onboarding/api/provision-tenant.ts` đang gọi relative path `/api/tenants/provisioning`; Story 1.5 không được lặp lại thêm một transport pattern ad-hoc khác.
-  - [ ] Chọn một hướng nhất quán cho dashboard read path: hoặc bổ sung web-side route/rewrite/base URL helper rõ ràng, hoặc gọi backend theo server-side helper nhất quán với kiến trúc hiện tại.
-  - [ ] Nếu phải chạm transport layer, đảm bảo không làm regress provisioning flow hiện có.
-- [ ] Bổ sung test coverage cho dashboard overview end-to-end theo boundary hiện có (AC: 1, 2, 3, 4, 5)
-  - [ ] Mở rộng `apps/web/src/app/(admin)/dashboard/page.spec.tsx` để cover count, populated list, empty state, error state, và preservation của CTA chính.
-  - [ ] Thêm unit/service/http tests ở `apps/api/src/modules/tenants/**` cho overview endpoint: populated, empty, envelope shape, và mapping dữ liệu branch/config.
-  - [ ] Nếu tenant item có summary drawer/sheet, thêm interaction test chứng minh action mở đúng summary thay vì điều hướng tới route không tồn tại.
+- [x] Bổ sung read contract và backend overview endpoint cho dashboard (AC: 1, 3, 5)
+  - [x] Mở rộng `libs/contracts/src/tenants/*` với response type tối thiểu cho dashboard overview, ví dụ `totalTenants` + `items[]`, giữ envelope `{ data, meta? }` và dùng camelCase.
+  - [x] Mở rộng `apps/api/src/modules/tenants/tenants.controller.ts` bằng read endpoint REST-first trong cùng module `tenants`; ưu tiên endpoint đọc rõ ràng như `GET /tenants` hoặc một read subresource nhất quán, không dùng action verb.
+  - [x] Thêm service/repository read path trong `apps/api/src/modules/tenants/**` để lấy tenant list từ Prisma cùng default branch/config summary cần cho dashboard.
+  - [x] Trả empty list ổn định khi chưa có tenant; không trả `null`, không trả raw Prisma payload, và giữ Swagger/OpenAPI khớp contract.
+- [x] Render tenant overview trên dashboard mà vẫn giữ CTA onboarding làm trọng tâm (AC: 1, 2)
+  - [x] Mở rộng `apps/web/src/app/(admin)/dashboard/page.tsx` để dashboard vừa là landing surface vừa giữ CTA **"Tạo tenant mới"** ở hierarchy nổi bật hiện tại.
+  - [x] Tách phần tenant overview ra một dashboard-focused boundary rõ ràng dưới `apps/web/src/features/` thay vì trộn logic mới vào onboarding shell hoặc `libs/ui`.
+  - [x] Hiển thị tối thiểu cho mỗi tenant item: tenant name, tenant slug, branch đầu tiên/default branch, và trạng thái summary đủ để xác nhận provisioning outcome mà không biến dashboard thành CRUD screen đầy đủ.
+- [x] Thiết kế action cho từng tenant item theo context đang thật sự tồn tại trong source (AC: 4)
+  - [x] Vì Story 1.4 hiện mới ở `ready-for-dev` và chưa có source review summary/publish screen, **không** link sang route/flow chưa tồn tại.
+  - [x] Ưu tiên action an toàn như **"Xem tóm tắt"** mở summary card/drawer/sheet read-only ngay trên dashboard để admin xem lại tenant + branch context đã provision.
+  - [x] Nếu bổ sung thêm action điều hướng, chỉ dùng route/context đã tồn tại thật trong source; không tạo dangling navigation.
+- [x] Xử lý loading, empty và error states mà không làm vỡ layout admin hiện tại (AC: 3)
+  - [x] Giữ shell/header/CTA ổn định khi data đang load hoặc lỗi; tránh layout shift lớn.
+  - [x] Empty state phải vẫn nhấn mạnh CTA tạo tenant mới thay vì tạo cảm giác dashboard "trống hẳn".
+  - [x] Error state phải ngắn, rõ, có khả năng retry nếu phù hợp, và không che mất CTA chính.
+- [x] Khóa chiến lược transport web -> API cho dashboard overview trước khi code UI fetch (AC: 5)
+  - [x] Hiện repo **chưa có** Next route handler/rewrite cho `/api/*`, trong khi `apps/web/src/features/admin-onboarding/api/provision-tenant.ts` đang gọi relative path `/api/tenants/provisioning`; Story 1.5 không được lặp lại thêm một transport pattern ad-hoc khác.
+  - [x] Chọn một hướng nhất quán cho dashboard read path: hoặc bổ sung web-side route/rewrite/base URL helper rõ ràng, hoặc gọi backend theo server-side helper nhất quán với kiến trúc hiện tại.
+  - [x] Nếu phải chạm transport layer, đảm bảo không làm regress provisioning flow hiện có.
+- [x] Bổ sung test coverage cho dashboard overview end-to-end theo boundary hiện có (AC: 1, 2, 3, 4, 5)
+  - [x] Mở rộng `apps/web/src/app/(admin)/dashboard/page.spec.tsx` để cover count, populated list, empty state, error state, và preservation của CTA chính.
+  - [x] Thêm unit/service/http tests ở `apps/api/src/modules/tenants/**` cho overview endpoint: populated, empty, envelope shape, và mapping dữ liệu branch/config.
+  - [x] Nếu tenant item có summary drawer/sheet, thêm interaction test chứng minh action mở đúng summary thay vì điều hướng tới route không tồn tại.
+
+### Review Findings
+
+- [x] [Review][Patch] Missing dashboard loading state [apps/web/src/app/(admin)/dashboard/page.tsx:6]
+- [x] [Review][Patch] Readiness vocabulary is not constrained to the approved set [libs/contracts/src/tenants/tenant-overview.ts:1]
 
 ## Dev Notes
 
@@ -177,28 +182,40 @@ so that I can confirm provisioning outcomes and quickly return to the right tena
 
 ### Agent Model Used
 
-GPT-5.4 (model ID: gpt-5.4)
+Claude Sonnet 4.6 (model ID: claude-sonnet-4.6)
 
 ### Debug Log References
 
-- Story creation workflow synthesis from Epic 1 planning artifacts, current dashboard/onboarding source, tenants API module, contracts, Prisma schema, package versions, and current sprint tracking.
+- Resolved transport strategy: server-side helper (`apps/web/src/lib/server/api.ts`) with `INTERNAL_API_URL` env var, consistent server component pattern; does not touch provisioning client path.
+- `@testing-library/user-event` not installed — used `fireEvent` from `@testing-library/react` instead.
+- `PrismaClient` (from `@prisma/client`) imported in repository for read method signature, compatible with `PrismaService extends PrismaClient`.
 
 ### Completion Notes List
 
-- Ultimate context engine analysis completed - comprehensive developer guide created.
-- Story 1.5 is intentionally guarded against two current repo mismatches: missing dashboard read endpoint and unstandardized web -> API transport.
-- Tenant item action is constrained to currently existing context so implementation does not depend on unbuilt Story 1.4 routes.
+- Implemented `TenantOverviewService` with `getOverview()` mapping Prisma result to contract shape.
+- Added `GET /tenants` to `TenantsController` with Swagger docs, returning standard `{ data }` envelope.
+- Extended `TenantsRepository` with `listTenantsForOverview(prisma: PrismaClient)` using Prisma include for default branch + configuration.
+- Created `libs/contracts/src/tenants/tenant-overview.ts` with `TenantOverviewResult`, `TenantOverviewItem`, `TenantOverviewBranchSummary`.
+- Created server-side fetch helper at `apps/web/src/lib/server/api.ts`; dashboard page is an async Server Component.
+- Dashboard feature boundary at `apps/web/src/features/dashboard/`; no logic added to onboarding shell.
+- `TenantItem` client island: expandable summary panel via `aria-expanded` toggle, no dangling navigation (no href).
+- Empty state references CTA explicitly; error state has `role="alert"`; CTA preserved in all three states (tests verify).
+- All 62 tests pass (23 API + 39 web); no regressions.
 
 ### File List
 
 - `_bmad-output/implementation-artifacts/1-5-dashboard-tenant-overview-sau-onboarding.md`
-- `apps/web/src/app/(admin)/dashboard/page.tsx`
-- `apps/web/src/app/(admin)/dashboard/page.spec.tsx`
-- `apps/web/src/features/admin-onboarding/components/create-tenant-entry.tsx`
-- `apps/web/src/features/dashboard/**`
+- `libs/contracts/src/tenants/tenant-overview.ts` *(new)*
+- `libs/contracts/src/tenants/index.ts`
+- `apps/api/src/modules/tenants/repositories/tenants.repository.ts`
+- `apps/api/src/modules/tenants/tenant-overview.service.ts` *(new)*
+- `apps/api/src/modules/tenants/tenant-overview.service.spec.ts` *(new)*
+- `apps/api/src/modules/tenants/tenant-overview.http.spec.ts` *(new)*
+- `apps/api/src/modules/tenants/entities/tenant-overview-response.entity.ts` *(new)*
 - `apps/api/src/modules/tenants/tenants.controller.ts`
 - `apps/api/src/modules/tenants/tenants.module.ts`
-- `apps/api/src/modules/tenants/repositories/tenants.repository.ts`
-- `apps/api/src/modules/tenants/**`
-- `libs/contracts/src/tenants/*`
-- `libs/contracts/src/index.ts`
+- `apps/web/src/lib/server/api.ts` *(new)*
+- `apps/web/src/features/dashboard/components/tenant-overview-section.tsx` *(new)*
+- `apps/web/src/features/dashboard/components/tenant-item.tsx` *(new)*
+- `apps/web/src/app/(admin)/dashboard/page.tsx`
+- `apps/web/src/app/(admin)/dashboard/page.spec.tsx`

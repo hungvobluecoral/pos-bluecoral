@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { ProvisionTenantRequest } from '@pos-bluecoral/contracts';
 
@@ -33,5 +33,18 @@ export class TenantsRepository {
     });
 
     return tenant;
+  }
+
+  async listTenantsForOverview(prisma: PrismaClient) {
+    return prisma.tenant.findMany({
+      include: {
+        branches: {
+          where: { isDefault: true },
+          include: { configuration: true },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }

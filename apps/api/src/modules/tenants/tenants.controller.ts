@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -12,6 +13,7 @@ import {
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiExtraModels,
+  ApiOkResponse,
   getSchemaPath,
   ApiOperation,
   ApiTags,
@@ -20,17 +22,37 @@ import type { Request } from 'express';
 import { successResponse } from '../../common/http/api-response';
 import { ProvisionTenantRequestDto } from './dto/provision-tenant.dto';
 import { ProvisionTenantResultEntity } from './entities/provision-tenant-response.entity';
+import { TenantOverviewResultEntity } from './entities/tenant-overview-response.entity';
+import { TenantOverviewService } from './tenant-overview.service';
 import { TenantProvisioningService } from './tenant-provisioning.service';
 
 type ScopedRequest = Request & { requestId?: string };
 
 @ApiTags('tenants')
-@ApiExtraModels(ProvisionTenantResultEntity)
+@ApiExtraModels(ProvisionTenantResultEntity, TenantOverviewResultEntity)
 @Controller('tenants')
 export class TenantsController {
   constructor(
     private readonly tenantProvisioningService: TenantProvisioningService,
+    private readonly tenantOverviewService: TenantOverviewService,
   ) {}
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get tenant overview for admin dashboard' })
+  @ApiOkResponse({
+    description: 'Tenant overview loaded successfully.',
+    schema: {
+      properties: {
+        data: { $ref: getSchemaPath(TenantOverviewResultEntity) },
+      },
+      type: 'object',
+    },
+  })
+  async getTenantOverview() {
+    const result = await this.tenantOverviewService.getOverview();
+    return successResponse(result);
+  }
 
   @Post('provisioning')
   @HttpCode(HttpStatus.CREATED)
