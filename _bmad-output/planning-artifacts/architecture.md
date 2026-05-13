@@ -166,15 +166,32 @@ Generator-based workflow, dependency graph rõ và khả năng mở rộng dần
 - **Database:** PostgreSQL là lựa chọn chính cho transactional data của POS multi-tenant.
 - **ORM:** Prisma được dùng cho schema, migrations và type-safe data access.
 - **Data modeling approach:** tenant và branch phải xuất hiện rõ trong schema, indexes, repository filters, audit records và event payloads; branch không bao giờ bị xem là metadata phụ.
-- **Domain partitioning:** MVP schema tập trung vào tenants, branches, staff, auth, products, orders, inventory, payments và audit. Customer/Promotion không được ép vào phase đầu nếu chưa cần cho capability lõi.
+- **Domain partitioning:** MVP schema tập trung vào tenants, branches, users, memberships, auth, products, orders, inventory, payments và audit. Customer/Promotion không được ép vào phase đầu nếu chưa cần cho capability lõi.
+- **User identity model:** `users` là platform entity duy nhất (không thuộc tenant/branch). Membership được tách thành hai bảng scope-specific: `tenant_memberships` (Owner — không có branchId) và `branch_memberships` (Manager/Cashier/Viewer — branchId NOT NULL). Không có nullable FK nào trong membership tables. Bảng `staff` cũ bị thay thế hoàn toàn.
+- **Self-service onboarding model:** `tenant_registrations` lưu đơn đăng ký từ người ngoài (status: pending/approved/rejected). `invite_tokens` lưu token set-password sau khi Super Admin approve.
 - **Validation strategy:** validate request shape ở API boundary; business correctness và scope correctness giữ ở service/domain layer.
 - **Migration approach:** mọi schema thay đổi đều đi qua migrations version-controlled; migration là một phần chính thức của implementation flow.
 - **Caching strategy:** Redis chỉ dùng cho rate limiting, token/session support và selective caching; không là source of truth.
 
 ### Authentication & Security
 
-- **Authentication model:** access JWT ngắn hạn + refresh token rotation.
-- **Authorization model:** RBAC theo tenant/branch scope; scope mismatch phải có error code rõ ràng.
+- **Authentication model:** access JWT ngắn hạn + refresh token rotation. JWT được gắn với `users.id`, không phải staff.
+- **JWT claims — discriminated union (zero null):** JWT có 3 type rõ ràng, mỗi type chỉ chứa fields cần thiết, không có nullable field:
+  - `{ type: 'super_admin', userId, sessionId }` — platform admin
+  - `{ type: 'tenant_scope', userId, tenantId, role: 'owner', sessionId }` — Owner sau login
+  - `{ type: 'branch_scope', userId, tenantId, branchId, role, sessionId }` — Manager/Cashier/Viewer hoặc Owner sau enter-branch
+- **Authorization model:** RBAC theo tenant/branch scope; scope được xác định bởi JWT type, không lấy từ request body. Scope mismatch phải có error code rõ ràng.
+- **Guard layers — 3 lớp bắt buộc:** `JwtAuthGuard` (token hợp lệ?) → `ScopeGuard` (đúng JWT type?) → `RolesGuard` (đúng role?). tenantId/branchId được inject từ JWT vào service layer, không bao giờ lấy từ client.
+- **Permission model:**
+  - Super Admin: chỉ platform routes (`/admin/*`), bị chặn hoàn toàn ở mọi route nghiệp vụ
+  - Owner (tenant_scope): quản lý tổ chức — tạo branch, thêm staff, xem cross-branch reports; không tạo order/payment
+  - Owner (branch_scope): xem/điều chỉnh dữ liệu branch sau `enter-branch`; không tạo order/payment
+  - Manager: vận hành branch — tạo/hủy order, điều chỉnh inventory, quản lý staff branch
+  - Cashier: thực thi POS — tạo order, ghi nhận payment
+  - Viewer: read-only toàn bộ
+- **Owner dual-context:** Owner login nhận JWT `tenant_scope`. Khi cần làm việc trong branch cụ thể: `POST /auth/enter-branch { branchId }` → issue access token mới `branch_scope` (không tạo refresh token mới). `POST /auth/exit-branch` để quay về tenant_scope.
+- **Multi-branch login:** Manager có nhiều BranchMembership → login trả về branch list → `POST /auth/select-branch { sessionToken, branchId }` → JWT branch_scope.
+- **Self-service signup:** `POST /registrations` (public) → TenantRegistration pending → Super Admin approve → Tenant + User + TenantMembership được tạo → InviteToken (TTL 48h) → `POST /auth/setup-password { token, password }` → User activated → auto-login.
 - **Security boundaries:** tenant boundary và branch boundary đều phải enforce xuyên UI route guards, API guards, service layer và data-access layer.
 - **Sensitive operations:** tenant/branch provisioning, role assignment, payment recording, inventory adjustment và publish/go-live actions cần audit logging rõ.
 - **UI security posture:** context tenant/branch phải luôn hiện diện trên các flow nhạy cảm; UI không được che giấu scope hiện tại ở những bước có khả năng gây sai lệch.
@@ -218,11 +235,12 @@ Tenant overview trên dashboard, nếu cần backend support, phải đi qua rea
 2. Thiết lập Tailwind + shadcn/ui foundation cho `web`.
 3. Dựng Docker dev cho PostgreSQL + Redis.
 4. Xây schema tenant/branch-first và migration foundation với Prisma.
-5. Thiết kế auth module với JWT + refresh rotation + RBAC theo scope.
-6. Dựng guided admin onboarding foundation: setup wizard, scope header, readiness panel, review step.
-7. Chuẩn hóa REST contracts, error format và shared contracts/libs.
-8. Xây MVP modules: tenants, branches, staff, products, orders, inventory, payments.
-9. Bổ sung audit logging, rate limiting và accessibility/regression checks cho các flow nhạy cảm.
+5. Thiết kế user identity model: `users`, `tenant_memberships`, `branch_memberships`, `tenant_registrations`, `invite_tokens`; xóa `staff` cũ.
+6. Thiết kế auth module: JWT discriminated union (3 types, zero null), refresh token rotation, 3-layer guards, enter/exit branch, multi-branch select.
+7. Dựng guided admin onboarding foundation: setup wizard, scope header, readiness panel, review step.
+8. Chuẩn hóa REST contracts, error format và shared contracts/libs.
+9. Xây MVP modules: tenants, branches, users/memberships, registrations, products, orders, inventory, payments.
+10. Bổ sung audit logging, rate limiting và accessibility/regression checks cho các flow nhạy cảm.
 
 **Cross-Component Dependencies:**
 - Tenant/branch data model chi phối auth, authorization, query filters, audit log, API contracts và UI context rendering.
@@ -557,7 +575,9 @@ pos-bluecoral/
 
 **Feature/Epic Mapping:**
 - Tenant & Branch governance → `apps/api/src/modules/tenants`, `apps/api/src/modules/branches`, `apps/web/src/features/admin-onboarding`, `apps/web/src/features/tenants`, `apps/web/src/features/branches`
-- Staff & RBAC → `apps/api/src/modules/staff`, `apps/api/src/modules/auth`, `apps/web/src/features/staff`, `apps/web/src/features/auth`
+- User identity & memberships → `apps/api/src/modules/users`, `apps/api/src/modules/memberships`, `apps/web/src/features/users`, `apps/web/src/features/staff`
+- Auth & RBAC → `apps/api/src/modules/auth`, `apps/web/src/features/auth` (JWT discriminated union, 3-layer guards, enter/exit branch, multi-branch select)
+- Tenant self-service registration → `apps/api/src/modules/registrations`, `apps/web/src/features/registration` (public signup + SA approve flow)
 - Product management → `apps/api/src/modules/products` + `apps/web/src/features/products`
 - Order & checkout → `apps/api/src/modules/orders` + `apps/web/src/features/orders`
 - Inventory management → `apps/api/src/modules/inventory` + `apps/web/src/features/inventory`
@@ -681,7 +701,6 @@ Những điểm dễ gây xung đột nhất giữa agents — naming, structure
 **Important Gaps:**
 - Chưa chốt production hosting target cụ thể; đây là defer có chủ đích.
 - Chưa chốt payment provider cụ thể.
-- Chưa có access-control matrix chi tiết theo role/tenant/branch; nên bổ sung ở giai đoạn story design.
 
 **Nice-to-Have Gaps:**
 - Có thể bổ sung observability vendor/log pipeline cụ thể khi bước vào implementation planning.
@@ -736,11 +755,16 @@ Các issue chính đã được xử lý trong lần cập nhật này:
 - Tenant/branch correctness đã được phản ánh xuyên data, auth, API, structure và UX patterns.
 - Guided admin onboarding đã trở thành phần kiến trúc lõi thay vì chỉ là chi tiết UI.
 - MVP boundaries rõ hơn, giảm rủi ro build thừa hoặc drift sang post-MVP quá sớm.
+- User identity model dùng `User + TenantMembership + BranchMembership` hoàn toàn không có nullable FK, giải quyết chicken-and-egg problem khi tạo tenant đầu tiên.
+- JWT discriminated union (3 type, zero null) xóa bỏ hoàn toàn bug tiềm ẩn do nullable claims.
+- Permission matrix rõ ràng: Owner = quản lý (không tạo order), Manager = vận hành, Cashier = thực thi POS, Viewer = read-only, Super Admin = platform only.
+- Access-control matrix đã được chốt và tích hợp trực tiếp vào guard layers, không còn là gap.
 
 **Areas for Future Enhancement:**
 - Chốt production hosting khi chuẩn bị pilot/deployment thật.
 - Bổ sung payment provider decision và observability vendor decision khi implementation đi sâu hơn.
-- Viết thêm access-control matrix và phase-2 extension blueprint cho Customer/Promotion.
+- Phase-2 extension blueprint cho Customer/Promotion.
+- Xem xét caching strategy cho branch-scope JWT khi scale lên nhiều tenant.
 
 ### Implementation Handoff
 

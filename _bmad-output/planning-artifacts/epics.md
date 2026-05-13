@@ -82,8 +82,11 @@ NFR16: Các module mới phải tuân theo contract scope hiện có thay vì t�
 - Local/dev environment phải chạy được với **PostgreSQL và Redis bằng Docker**, backend và supporting services phải container-ready từ đầu.
 - Schema và data access phải theo mô hình **tenant-first và branch-first** xuyên suốt Prisma schema, index, query filters, audit records và event payloads.
 - Mọi thay đổi schema phải đi qua **Prisma migrations version-controlled**.
-- Authentication phải dùng **access JWT ngắn hạn + refresh token rotation**.
-- Authorization phải là **RBAC theo tenant/branch scope**, trong đó branch là security boundary độc lập chứ không chỉ là metadata.
+- Authentication phải dùng **access JWT ngắn hạn + refresh token rotation**. JWT phải là **discriminated union 3 type (super_admin | tenant_scope | branch_scope)** — không có nullable claim nào trong JWT.
+- Authorization phải là **RBAC theo tenant/branch scope** với **3-layer guards: JwtAuthGuard → ScopeGuard → RolesGuard**. tenantId/branchId luôn được inject từ JWT, không bao giờ lấy từ request body. Branch là security boundary độc lập chứ không chỉ là metadata.
+- User identity phải dùng model **User + TenantMembership + BranchMembership** — không có bảng `Staff` nào. Owner có TenantMembership (không cần branchId), Manager/Cashier/Viewer có BranchMembership (branchId NOT NULL). Super Admin có `isSuperAdmin: boolean` trên bảng User.
+- Owner có thể switch vào branch context bằng `POST /auth/enter-branch` và quay về tenant_scope bằng `POST /auth/exit-branch` mà không tạo refresh token mới.
+- Owner **không được tạo order** kể cả khi đang ở branch_scope — Owner = quản lý, không vận hành POS.
 - API phải theo hướng **REST-first** với **OpenAPI/Swagger**, response chuẩn hóa `{ data, meta? }` và error chuẩn hóa `{ error: { code, message, details?, requestId? } }`.
 - `libs/contracts` là nơi chứa shared contracts thật sự dùng chung; không copy-paste DTO giữa `web` và `api`.
 - Cross-module integration phải đi qua services hoặc domain events có kiểm soát; không import chéo repository trực tiếp giữa các module.
@@ -92,7 +95,7 @@ NFR16: Các module mới phải tuân theo contract scope hiện có thay vì t�
 - Cần có **structured logging, audit logging, request correlation** và rate limiting đủ sớm để debug sai scope xuyên module.
 - Accessibility target là **WCAG AA** với keyboard-first support cho wizard, form, dialog và review flows.
 - Các capability **Customer** và **Promotion** là **post-MVP extension seams**, không được làm phình implementation tree của MVP.
-- Ở giai đoạn story design cần bổ sung **access-control matrix chi tiết theo role/tenant/branch** để hiện thực hóa RBAC chính xác.
+- Ở giai đoạn story design, access-control matrix đã được chốt trong architecture.md; không cần bổ sung thêm.
 - Payment stories phải giữ kiến trúc **provider-agnostic** vì payment provider cụ thể chưa được chốt.
 - Deployment stories chỉ cần giữ hệ thống **cloud-vendor agnostic** ở giai đoạn đầu vì production hosting cụ thể đang defer có chủ đích.
 
@@ -131,12 +134,12 @@ FR3: Epic 1 - Guided Tenant & Branch Onboarding
 FR4: Epic 1 - Guided Tenant & Branch Onboarding
 FR5: Epic 1 - Guided Tenant & Branch Onboarding
 FR6: Epic 1 - Guided Tenant & Branch Onboarding
-FR7: Epic 2 - Scoped Staff Access & Branch Governance
-FR8: Epic 2 - Scoped Staff Access & Branch Governance
-FR9: Epic 2 - Scoped Staff Access & Branch Governance
-FR10: Epic 2 - Scoped Staff Access & Branch Governance
-FR11: Epic 2 - Scoped Staff Access & Branch Governance
-FR12: Epic 2 - Scoped Staff Access & Branch Governance
+FR7: Epic 2 - User Identity, Memberships & Scoped Access
+FR8: Epic 2 - User Identity, Memberships & Scoped Access
+FR9: Epic 2 - User Identity, Memberships & Scoped Access
+FR10: Epic 2 - User Identity, Memberships & Scoped Access
+FR11: Epic 2 - User Identity, Memberships & Scoped Access
+FR12: Epic 2 - User Identity, Memberships & Scoped Access
 FR13: Epic 3 - Branch Catalog & Stock Readiness
 FR14: Epic 3 - Branch Catalog & Stock Readiness
 FR15: Epic 3 - Branch Catalog & Stock Readiness
@@ -167,8 +170,8 @@ FR35: Epic 1 - Guided Tenant & Branch Onboarding
 System admin có thể tạo tenant, tạo branch đầu tiên, cấu hình scope an toàn và có một nền tảng đúng để các module sau vận hành mà không làm sai tenant/branch context.
 **FRs covered:** FR1, FR2, FR3, FR4, FR5, FR6, FR29, FR30, FR31, FR32, FR33, FR34, FR35
 
-### Epic 2: Scoped Staff Access & Branch Governance
-System admin và store manager có thể tạo staff, gán role theo tenant/branch và enforce truy cập đúng scope trong vận hành hằng ngày.
+### Epic 2: User Identity, Memberships & Scoped Access
+System admin, Owner và Manager có thể tạo user accounts, gán memberships theo đúng tenant/branch scope, và enforce truy cập đúng role trong vận hành hằng ngày — kể cả cho Tenant Owner đăng ký qua flow self-service.
 **FRs covered:** FR7, FR8, FR9, FR10, FR11, FR12
 
 ### Epic 3: Branch Catalog & Stock Readiness
@@ -279,61 +282,85 @@ So that I can confirm provisioning outcomes and quickly return to the right tena
 **And** mỗi tenant item cung cấp action phù hợp để xem lại summary hoặc tiếp tục vào đúng context khả dụng
 **And** dữ liệu dashboard tuân theo contract/API envelope chuẩn, không tạo thêm semantics cạnh tranh với guided onboarding flow
 
-## Epic 2: Scoped Staff Access & Branch Governance
+## Epic 2: User Identity, Memberships & Scoped Access
 
-System admin và store manager có thể tạo staff, gán role theo tenant/branch và enforce truy cập đúng scope trong vận hành hằng ngày.
+System admin, Owner và Manager có thể tạo user accounts, gán memberships theo đúng tenant/branch scope, và enforce truy cập đúng role trong vận hành hằng ngày — kể cả cho Tenant Owner đăng ký qua flow self-service.
 
-### Story 2.1: Đăng nhập với session gắn tenant/branch scope
+### Story 2.1: Đăng nhập với JWT discriminated union và branch scope selection
 
-As a staff member,
-I want to sign in with a session that knows my tenant and branch permissions,
-So that I can enter only the workspaces I am allowed to operate.
+As a user (Super Admin / Owner / Manager / Cashier / Viewer),
+I want to sign in and receive a JWT that reflects exactly my scope and role,
+So that I enter only the workspaces I am authorized to operate, without any ambiguous or nullable claims.
 
 **Implements:** FR9, FR10, FR11
 
 **Acceptance Criteria:**
 
-**Given** một tài khoản staff hợp lệ đã được kích hoạt
-**When** staff đăng nhập vào hệ thống
-**Then** hệ thống cấp access JWT ngắn hạn và refresh token rotation có chứa claims cần thiết cho tenant/branch scope và role được gán
-**And** route/API guards chỉ cho phép staff vào workspace và thực hiện action nằm trong scope được cấp
+**Given** một tài khoản user hợp lệ đã được kích hoạt
+**When** user đăng nhập vào hệ thống
+**Then** hệ thống cấp JWT thuộc đúng type trong discriminated union: `super_admin` (không có tenantId/branchId), `tenant_scope` (Owner, tenantId, không có branchId), hoặc `branch_scope` (Manager/Cashier/Viewer, tenantId + branchId — cả hai NOT NULL)
+**And** nếu user có nhiều BranchMembership, step 1 trả về danh sách branch để chọn, step 2 `POST /auth/select-branch { sessionToken, branchId }` mới cấp JWT branch_scope cuối
+**And** Owner sau login nhận JWT tenant_scope; có thể gọi `POST /auth/enter-branch { branchId }` để nhận access token branch_scope mới (không tạo refresh token mới), và `POST /auth/exit-branch` để quay về tenant_scope
+**And** Super Admin nhận JWT super_admin; bị chặn hoàn toàn bởi ScopeGuard khi cố truy cập bất kỳ route nghiệp vụ nào
+**And** route/API guards áp dụng 3-layer: JwtAuthGuard → ScopeGuard → RolesGuard; tenantId/branchId KHÔNG bao giờ được lấy từ request body
 **And** nếu token hết hạn, bị thu hồi, hoặc scope không hợp lệ, hệ thống trả về error code auth/authz ổn định và không để lộ chi tiết nội bộ
-**And** audit log ghi nhận đăng nhập, làm mới token, và từ chối truy cập đối với các sự kiện nhạy cảm liên quan đến scope
+**And** audit log ghi nhận đăng nhập, làm mới token, enter/exit branch, và từ chối truy cập đối với các sự kiện nhạy cảm liên quan đến scope
 
-### Story 2.2: Tạo staff và gán role theo tenant/branch
+### Story 2.2: Tạo user account và gán membership theo tenant/branch scope
 
-As a system admin,
-I want to create staff accounts and assign roles at tenant or branch scope,
-So that the right people can operate in the right business context.
+As a Super Admin or Owner,
+I want to create user accounts and assign them to tenants or branches with the correct role,
+So that the right people can operate in the right business context with no ambiguous assignments.
 
 **Implements:** FR7, FR8
 
 **Acceptance Criteria:**
 
-**Given** system admin đang quản lý một tenant hợp lệ
-**When** admin tạo mới hoặc cập nhật staff account
-**Then** hệ thống cho phép gán role theo tenant hoặc branch scope một cách rõ ràng và không cho tạo assignment mơ hồ
+**Given** Super Admin hoặc Owner đang quản lý một tenant hợp lệ
+**When** họ tạo mới user hoặc gán membership cho user đã tồn tại
+**Then** hệ thống tạo User với email globally unique; Owner được gán qua TenantMembership (không cần branchId); Manager/Cashier/Viewer được gán qua BranchMembership (branchId NOT NULL — không có nullable FK)
 **And** màn hình/flow quản trị hiển thị summary rõ về tenant, branch, role và phạm vi ảnh hưởng trước khi lưu
-**And** hệ thống chặn các assignment xung đột, trùng lặp, hoặc vượt scope quản lý của admin đang thao tác
-**And** dữ liệu staff/role được lưu theo contract nhất quán và sẵn sàng cho auth/authz sử dụng ngay sau đó
-**And** các thay đổi role/staff được audit log với actor, scope và thay đổi chính
+**And** hệ thống chặn các assignment xung đột, trùng lặp (UNIQUE constraint), hoặc vượt scope của người đang thao tác
+**And** user được kích hoạt qua invite email: hệ thống tạo InviteToken (TTL 48h) → user nhận link → `POST /auth/setup-password { token, password }` → account được kích hoạt → auto-login với đúng JWT type
+**And** dữ liệu membership được lưu theo contract nhất quán và sẵn sàng cho auth/authz sử dụng ngay sau kích hoạt
+**And** các thay đổi membership được audit log với actor, scope và thay đổi chính
 
-### Story 2.3: Enforce quyền và quản lý staff theo branch cho store manager
+### Story 2.3: Enforce quyền và quản lý BranchMembership theo branch cho Manager
 
 As a store manager,
-I want to manage branch staff and perform only permitted actions within my branch,
+I want to manage branch users and perform only permitted actions within my branch,
 So that branch operations stay secure without depending on central admin for every change.
 
 **Implements:** FR9, FR10, FR11, FR12
 
 **Acceptance Criteria:**
 
-**Given** store manager đã đăng nhập với branch scope hợp lệ
-**When** manager xem danh sách staff hoặc thực hiện thao tác quản trị được cấp quyền
-**Then** hệ thống chỉ hiển thị staff và action nằm trong branch manager phụ trách
-**And** manager có thể cập nhật những thuộc tính/hành động được phép mà không vượt qua role policy đã quy định
+**Given** Manager đã đăng nhập với JWT branch_scope hợp lệ
+**When** Manager xem danh sách user trong branch hoặc thực hiện thao tác quản trị được cấp quyền
+**Then** hệ thống chỉ hiển thị BranchMemberships và action nằm trong branch Manager phụ trách
+**And** Manager có thể thêm/cập nhật BranchMembership (Cashier/Viewer) trong branch của mình mà không vượt qua role policy đã quy định
 **And** mọi thao tác nhạy cảm bị bảo vệ bởi guardrails rõ ràng, thông điệp lỗi gọn rõ, và không cho phép truy cập ngoài scope
 **And** query filters, API guards và UI states phải đồng nhất để không xảy ra tình huống thấy dữ liệu đúng scope nhưng thao tác sai scope, hoặc ngược lại
+
+### Story 2.4: Tenant self-service registration và Super Admin approval flow
+
+As a prospective tenant owner,
+I want to register my business through a public form, and after Super Admin approval, receive an invite to set up my account,
+So that I can start using the platform without requiring manual provisioning by the SA team.
+
+**Implements:** FR7, FR8
+
+**Acceptance Criteria:**
+
+**Given** người dùng chưa có tài khoản muốn đăng ký dùng platform
+**When** họ điền và gửi form đăng ký qua `POST /registrations` (public endpoint)
+**Then** hệ thống tạo TenantRegistration với trạng thái PENDING và không tạo Tenant/User nào ngay lúc này
+**And** Super Admin nhận notification và có thể xem danh sách registrations đang chờ duyệt
+**And** khi SA approve: hệ thống tạo Tenant + User + TenantMembership(owner) + InviteToken (TTL 48h) trong một transaction
+**And** khi SA reject: registration được đánh dấu REJECTED với lý do, không tạo bất kỳ entity nào
+**And** Owner nhận invite email → `POST /auth/setup-password { token, password }` → account kích hoạt → auto-login tenant_scope JWT
+**And** Owner có thể login và tạo branch đầu tiên ngay sau kích hoạt — không bị chặn bởi chicken-and-egg problem vì TenantMembership không cần branchId
+**And** toàn bộ flow được audit log (registration created, approved/rejected, invite sent, account activated)
 
 ## Epic 3: Branch Catalog & Stock Readiness
 

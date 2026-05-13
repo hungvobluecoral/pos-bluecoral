@@ -20,3 +20,6 @@ export interface ApiErrorResponse {
 }
 
 export * from './tenants';
+export * from './auth';
+export * from './registrations';
+

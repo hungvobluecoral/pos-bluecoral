@@ -1,6 +1,6 @@
 # Story 2.1: Đăng nhập với session gắn tenant/branch scope
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -27,24 +27,24 @@ so that I can enter only the workspaces I am allowed to operate.
 
 ## Tasks / Subtasks
 
-- [ ] Xây auth/session model theo short-lived access JWT + refresh token rotation (AC: 1, 3, 4)
-  - [ ] Tạo hoặc mở rộng `apps/api/src/modules/auth/*` cho login, refresh, logout/revoke flow.
-  - [ ] Đặt refresh token dưới persistence/support store có thể revoke, không xem refresh JWT như stateless source of truth.
-  - [ ] Hash refresh token trước khi lưu và phát hiện token reuse/replay.
-- [ ] Chuẩn hóa claims và scope propagation (AC: 1, 2, 3)
-  - [ ] Claims tối thiểu phải thể hiện `staffId`, `tenantId`, `branchId` hoặc scope set tương đương, `role`, `sessionId` hoặc `tokenVersion`.
-  - [ ] Guards/decorators/backend context phải dùng claims này làm source of truth cho authorization.
-  - [ ] Scope mismatch phải có error code rõ và không bị fallback âm thầm sang scope khác.
-- [ ] Kết nối auth với web session/workspace entry (AC: 1, 2, 3)
-  - [ ] Tạo `apps/web/src/features/auth/*` và `apps/web/src/lib/auth/*` cho sign-in, refresh, session bootstrap và redirect vào workspace đúng scope.
-  - [ ] Không cache scope trong nhiều store mơ hồ; một session/source of truth duy nhất phải điều phối workspace access.
-- [ ] Bổ sung audit và observability cho auth events (AC: 4)
-  - [ ] Ghi audit log cho login success/failure, refresh success/failure, revoke và denied access.
-  - [ ] Structured logs phải có request correlation, actor/session metadata và scope metadata.
-- [ ] Viết test cho happy path + threat path (AC: 1, 2, 3, 4)
-  - [ ] Unit/service tests cho login, refresh rotation, revoke và token reuse detection.
-  - [ ] Guard tests cho route/API access trong và ngoài scope.
-  - [ ] Web tests cho sign-in/session bootstrap/error handling.
+- [x] Xây auth/session model theo short-lived access JWT + refresh token rotation (AC: 1, 3, 4)
+  - [x] Tạo hoặc mở rộng `apps/api/src/modules/auth/*` cho login, refresh, logout/revoke flow.
+  - [x] Đặt refresh token dưới persistence/support store có thể revoke, không xem refresh JWT như stateless source of truth.
+  - [x] Hash refresh token trước khi lưu và phát hiện token reuse/replay.
+- [x] Chuẩn hóa claims và scope propagation (AC: 1, 2, 3)
+  - [x] Claims tối thiểu phải thể hiện `staffId`, `tenantId`, `branchId` hoặc scope set tương đương, `role`, `sessionId` hoặc `tokenVersion`.
+  - [x] Guards/decorators/backend context phải dùng claims này làm source of truth cho authorization.
+  - [x] Scope mismatch phải có error code rõ và không bị fallback âm thầm sang scope khác.
+- [x] Kết nối auth với web session/workspace entry (AC: 1, 2, 3)
+  - [x] Tạo `apps/web/src/features/auth/*` và `apps/web/src/lib/auth/*` cho sign-in, refresh, session bootstrap và redirect vào workspace đúng scope.
+  - [x] Không cache scope trong nhiều store mơ hồ; một session/source of truth duy nhất phải điều phối workspace access.
+- [x] Bổ sung audit và observability cho auth events (AC: 4)
+  - [x] Ghi audit log cho login success/failure, refresh success/failure, revoke và denied access.
+  - [x] Structured logs phải có request correlation, actor/session metadata và scope metadata.
+- [x] Viết test cho happy path + threat path (AC: 1, 2, 3, 4)
+  - [x] Unit/service tests cho login, refresh rotation, revoke và token reuse detection.
+  - [x] Guard tests cho route/API access trong và ngoài scope.
+  - [x] Web tests cho sign-in/session bootstrap/error handling.
 
 ## Dev Notes
 
@@ -128,13 +128,53 @@ GPT-5.4 (model ID: gpt-5.4)
 
 - Ultimate context engine analysis completed - comprehensive developer guide created.
 - Auth implementation must become the single scope source of truth for later staff, catalog, order and payment flows.
+- **Implementation Complete (2026-05-13):**
+  - Installed: `@nestjs/jwt`, `bcryptjs`, `cookie-parser`; added `Staff`, `RefreshToken` models + `StaffRole` enum via Prisma migration `20260513085729_add_staff_and_refresh_tokens`.
+  - `AuthService`: login with bcryptjs password verify, JWT access token (15min), refresh token rotation (7d), replay/reuse detection (revoke all on hash mismatch), logout revoke.
+  - `AuthController`: POST /api/auth/login, /refresh, /logout; refresh token → HttpOnly cookie, session_id → cookie.
+  - `JwtAuthGuard` + `ScopeGuard` with role hierarchy (owner > manager > cashier > viewer); `@CurrentUser` + `@RequireRoles` decorators; `assertTenantScope()` / `assertBranchScope()` helpers.
+  - `AuditService.recordAuthEvent()` added; `AuditLogRepository` generalized to `AuditLogEntry`.
+  - Contracts: `libs/contracts/src/auth/index.ts` — `AccessTokenClaims`, `LoginRequest/Response`, `RefreshResponse`, `AuthErrorCode`.
+  - Web: `loginAction` / `logoutAction` server actions, `SignInForm` component, `/sign-in` page, sessionStorage-backed session store.
+  - Tests: 22 API tests (AuthService + Guards), 11 web tests (SignInForm + session) — all 46 project tests pass.
+  - Polyfilled `FormData` in `test-setup.ts` for React 19 + JSDOM 26 compatibility.
 
 ### File List
 
-- `_bmad-output/implementation-artifacts/2-1-dang-nhap-voi-session-gan-tenant-branch-scope.md`
-- `apps/api/src/modules/auth/*`
-- `apps/api/src/common/guards/*`
-- `apps/web/src/features/auth/*`
-- `apps/web/src/lib/auth/*`
-- `libs/auth/src/*`
+- `apps/api/prisma/schema.prisma` (modified — Staff, RefreshToken, StaffRole)
+- `apps/api/prisma/migrations/20260513085729_add_staff_and_refresh_tokens/migration.sql`
+- `apps/api/src/main.ts` (modified — cookie-parser middleware)
+- `apps/api/src/app/app.module.ts` (modified — AuthModule import)
+- `apps/api/src/modules/auth/auth.module.ts`
+- `apps/api/src/modules/auth/auth.service.ts`
+- `apps/api/src/modules/auth/auth.controller.ts`
+- `apps/api/src/modules/auth/dto/login.dto.ts`
+- `apps/api/src/modules/auth/repositories/staff.repository.ts`
+- `apps/api/src/modules/auth/repositories/refresh-token.repository.ts`
+- `apps/api/src/modules/auth/auth.service.spec.ts`
+- `apps/api/src/common/guards/jwt-auth.guard.ts`
+- `apps/api/src/common/guards/scope.guard.ts`
+- `apps/api/src/common/guards/guards.spec.ts`
+- `apps/api/src/common/decorators/current-user.decorator.ts`
+- `apps/api/src/common/decorators/require-roles.decorator.ts`
+- `apps/api/src/common/errors/auth-errors.ts`
+- `apps/api/src/modules/audit/audit.service.ts` (modified — recordAuthEvent)
+- `apps/api/src/modules/audit/repositories/audit-log.repository.ts` (modified — generic AuditLogEntry)
+- `libs/contracts/src/auth/index.ts`
+- `libs/contracts/src/index.ts` (modified — export auth)
+- `apps/web/src/features/auth/api/auth.ts`
+- `apps/web/src/features/auth/actions/auth-actions.ts`
+- `apps/web/src/features/auth/components/sign-in-form.tsx`
+- `apps/web/src/features/auth/components/sign-in-form.spec.tsx`
+- `apps/web/src/app/(auth)/sign-in/page.tsx`
+- `apps/web/src/lib/auth/session.ts`
+- `apps/web/src/lib/auth/index.ts`
+- `apps/web/src/lib/auth/session.spec.ts`
+- `apps/web/src/test-setup.ts` (modified — FormData polyfill)
+
+## Change Log
+
+| Date | Change |
+|------|--------|
+| 2026-05-13 | Initial implementation: JWT auth + refresh token rotation, guards, decorators, web sign-in, audit, tests (46 passing) |
 

@@ -7,43 +7,72 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum TenantMembershipRole {
+  owner
+}
+
+enum BranchMembershipRole {
+  manager
+  cashier
+  viewer
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AuditOutcome {
+  success
+  failure
+}
+
+// ─── Tenant / Branch ─────────────────────────────────────────────────────────
+
 model Tenant {
-  id             String                @id @default(uuid()) @db.Uuid
-  name           String                @map("name")
-  slug           String                @unique(map: "tenants_slug_key")
-  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
-  branches       Branch[]
-  configuration  TenantConfiguration?
+  id                  String               @id @default(uuid()) @db.Uuid
+  name                String               @map("name")
+  slug                String               @unique(map: "tenants_slug_key")
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  branches            Branch[]
+  configuration       TenantConfiguration?
+  tenantMemberships   TenantMembership[]
+  branchMemberships   BranchMembership[]
+  tenantRegistrations TenantRegistration[]
 
   @@index([slug], map: "tenants_slug_idx")
   @@map("tenants")
 }
 
 model TenantConfiguration {
-  id         String   @id @default(uuid()) @db.Uuid
-  tenantId    String   @unique(map: "tenant_configurations_tenant_id_key") @map("tenant_id") @db.Uuid
-  locale      String   @map("locale")
-  currency    String   @map("currency")
-  timezone    String   @map("timezone")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @unique(map: "tenant_configurations_tenant_id_key") @map("tenant_id") @db.Uuid
+  locale    String   @map("locale")
+  currency  String   @map("currency")
+  timezone  String   @map("timezone")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("tenant_configurations")
 }
 
 model Branch {
-  id             String                @id @default(uuid()) @db.Uuid
-  tenantId       String                @map("tenant_id") @db.Uuid
-  name           String                @map("name")
-  slug           String                @map("slug")
-  code           String                @map("code")
-  isDefault      Boolean               @default(false) @map("is_default")
-  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
-  tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  configuration  BranchConfiguration?
+  id                String               @id @default(uuid()) @db.Uuid
+  tenantId          String               @map("tenant_id") @db.Uuid
+  name              String               @map("name")
+  slug              String               @map("slug")
+  code              String               @map("code")
+  isDefault         Boolean              @default(false) @map("is_default")
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant            Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  configuration     BranchConfiguration?
+  branchMemberships BranchMembership[]
 
   @@unique([tenantId, slug], map: "branches_tenant_id_slug_key")
   @@unique([tenantId, code], map: "branches_tenant_id_code_key")
@@ -63,6 +92,121 @@ model BranchConfiguration {
   @@map("branch_configurations")
 }
 
+// ─── User Identity ───────────────────────────────────────────────────────────
+
+model User {
+  id                String             @id @default(uuid()) @db.Uuid
+  email             String             @unique(map: "users_email_key") @map("email")
+  passwordHash      String             @map("password_hash")
+  isSuperAdmin      Boolean            @default(false) @map("is_super_admin")
+  isActive          Boolean            @default(false) @map("is_active")
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenantMemberships TenantMembership[]
+  branchMemberships BranchMembership[]
+  refreshTokens     RefreshToken[]
+  inviteTokens      InviteToken[]
+
+  @@index([email], map: "users_email_idx")
+  @@map("users")
+}
+
+// Owner → tenant, no branchId needed. UNIQUE(userId, tenantId) prevents duplicate ownership.
+model TenantMembership {
+  id        String               @id @default(uuid()) @db.Uuid
+  userId    String               @map("user_id") @db.Uuid
+  tenantId  String               @map("tenant_id") @db.Uuid
+  role      TenantMembershipRole @default(owner) @map("role")
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant    Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId], map: "tenant_memberships_user_id_tenant_id_key")
+  @@index([userId], map: "tenant_memberships_user_id_idx")
+  @@index([tenantId], map: "tenant_memberships_tenant_id_idx")
+  @@map("tenant_memberships")
+}
+
+// Manager/Cashier/Viewer → branch. branchId is NOT NULL always. UNIQUE(userId, branchId) = 1 role per branch per user.
+model BranchMembership {
+  id        String               @id @default(uuid()) @db.Uuid
+  userId    String               @map("user_id") @db.Uuid
+  tenantId  String               @map("tenant_id") @db.Uuid
+  branchId  String               @map("branch_id") @db.Uuid
+  role      BranchMembershipRole @map("role")
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant    Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch    Branch               @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, branchId], map: "branch_memberships_user_id_branch_id_key")
+  @@index([userId], map: "branch_memberships_user_id_idx")
+  @@index([tenantId], map: "branch_memberships_tenant_id_idx")
+  @@index([branchId], map: "branch_memberships_branch_id_idx")
+  @@index([tenantId, branchId], map: "branch_memberships_tenant_id_branch_id_idx")
+  @@map("branch_memberships")
+}
+
+// ─── Auth Tokens ─────────────────────────────────────────────────────────────
+
+model RefreshToken {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  tokenHash     String    @map("token_hash")
+  sessionId     String    @map("session_id") @db.Uuid
+  scopeSnapshot Json      @map("scope_snapshot")
+  userAgent     String?   @map("user_agent")
+  ipAddress     String?   @map("ip_address")
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "refresh_tokens_user_id_idx")
+  @@index([sessionId], map: "refresh_tokens_session_id_idx")
+  @@map("refresh_tokens")
+}
+
+// Single-use invite token for account activation (TTL 48h). Hashed before storage.
+model InviteToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "invite_tokens_user_id_idx")
+  @@map("invite_tokens")
+}
+
+// ─── Self-service Registration ────────────────────────────────────────────────
+
+// Public signup → SA reviews → APPROVED creates Tenant+User+TenantMembership+InviteToken.
+model TenantRegistration {
+  id           String             @id @default(uuid()) @db.Uuid
+  tenantId     String?            @map("tenant_id") @db.Uuid
+  email        String             @map("email")
+  name         String             @map("name")
+  businessName String             @map("business_name")
+  status       RegistrationStatus @default(PENDING) @map("status")
+  reviewNote   String?            @map("review_note")
+  reviewedBy   String?            @map("reviewed_by") @db.Uuid
+  reviewedAt   DateTime?          @map("reviewed_at") @db.Timestamptz(6)
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant       Tenant?            @relation(fields: [tenantId], references: [id])
+
+  @@index([status], map: "tenant_registrations_status_idx")
+  @@index([email], map: "tenant_registrations_email_idx")
+  @@map("tenant_registrations")
+}
+
+// ─── Audit ───────────────────────────────────────────────────────────────────
+
 model AuditLog {
   id        String       @id @default(uuid()) @db.Uuid
   action    String       @map("action")
@@ -77,9 +221,4 @@ model AuditLog {
   @@index([requestId], map: "audit_logs_request_id_idx")
   @@index([tenantId, branchId], map: "audit_logs_tenant_id_branch_id_idx")
   @@map("audit_logs")
-}
-
-enum AuditOutcome {
-  success
-  failure
 }
