@@ -1,0 +1,14 @@
+packages:
+  - "apps/*"
+  - "libs/*"
+
+allowBuilds:
+  '@nestjs/core': true
+  '@parcel/watcher': true
+  '@scarf/scarf': true
+  '@swc/core': true
+  less: true
+  nx: true
+  sharp: true
+  unrs-resolver: true
+autoInstallPeers: true

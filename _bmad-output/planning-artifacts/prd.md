@@ -13,6 +13,7 @@ stepsCompleted:
   - step-09-functional
   - step-10-nonfunctional
   - step-11-polish
+  - step-01b-continue
 releaseMode: phased
 inputDocuments:
   - "_bmad-output/planning-artifacts/product-brief-POS_BlueCoral.md"

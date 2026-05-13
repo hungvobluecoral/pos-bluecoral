@@ -1,6 +1,6 @@
 # Story 1.1: Set up initial project from starter template
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -30,28 +30,33 @@ so that I can begin provisioning a tenant in a consistent, scope-aware environme
 
 ## Tasks / Subtasks
 
-- [ ] Khởi tạo workspace Nx theo kiến trúc đã chốt (AC: 1)
-  - [ ] Tạo monorepo với `pnpm` bằng Nx official integrated workspace.
-  - [ ] Sinh `web` bằng Next.js App Router và `api` bằng NestJS bằng Nx generators, giữ đúng tinh thần `apps/` + `libs/`.
-  - [ ] Giữ Nx core và các plugin `@nx/*` cùng major version; không trộn version lệch major.
-  - [ ] Không tạo source tree cho Customer/Promotion hoặc các capability post-MVP.
-- [ ] Dựng nền môi trường local/dev (AC: 1, 2)
-  - [ ] Thêm `.env.example` ở root và app-specific env mẫu nếu cần.
-  - [ ] Thêm `docker-compose.dev.yml` cho PostgreSQL và Redis; backend/supporting services phải container-ready từ đầu.
-  - [ ] Đảm bảo các target serve/build/test/lint của Nx có thể được dùng cho `web` và `api`.
-- [ ] Dựng foundation UI cho admin onboarding (AC: 3, 4)
-  - [ ] Tạo dashboard admin với CTA `"Tạo tenant mới"` dễ thấy và route tới `/setup/tenants/new`.
-  - [ ] Tạo onboarding shell desktop-first với stepper placeholder, scope header placeholder và readiness panel placeholder.
-  - [ ] Đặt tất cả component business-specific của flow này dưới `apps/web/src/features/admin-onboarding/*`; không đẩy sớm vào `libs/ui`.
-  - [ ] Dùng `shadcn/ui` làm primitive layer và Tailwind CSS cho layout/tokens ban đầu.
-- [ ] Dựng foundation REST/OpenAPI cho onboarding (AC: 5)
-  - [ ] Bật OpenAPI/Swagger bootstrap cho `api`.
-  - [ ] Chuẩn hóa success envelope `{ data, meta? }` và error envelope `{ error: { code, message, details?, requestId? } }`.
-  - [ ] Tạo shared contract/common types tối thiểu để frontend/backend mở rộng tiếp mà không copy-paste.
-  - [ ] Chỉ scaffold foundation; không implement persistence thật cho tenant/branch ở story này.
-- [ ] Bổ sung test và smoke coverage cho foundation (AC: 1, 3, 4, 5)
-  - [ ] Thêm unit/smoke tests tối thiểu cho dashboard CTA, onboarding shell render, và API bootstrap/contract helpers.
-  - [ ] Giữ test co-located với source; chỉ tạo e2e nếu Nx scaffold mặc định đã có và test thực sự đo được behavior của story.
+- [x] Khởi tạo workspace Nx theo kiến trúc đã chốt (AC: 1)
+  - [x] Tạo monorepo với `pnpm` bằng Nx official integrated workspace.
+  - [x] Sinh `web` bằng Next.js App Router và `api` bằng NestJS bằng Nx generators, giữ đúng tinh thần `apps/` + `libs/`.
+  - [x] Giữ Nx core và các plugin `@nx/*` cùng major version; không trộn version lệch major.
+  - [x] Không tạo source tree cho Customer/Promotion hoặc các capability post-MVP.
+- [x] Dựng nền môi trường local/dev (AC: 1, 2)
+  - [x] Thêm `.env.example` ở root và app-specific env mẫu nếu cần.
+  - [x] Thêm `docker-compose.dev.yml` cho PostgreSQL và Redis; backend/supporting services phải container-ready từ đầu.
+  - [x] Đảm bảo các target serve/build/test/lint của Nx có thể được dùng cho `web` và `api`.
+- [x] Dựng foundation UI cho admin onboarding (AC: 3, 4)
+  - [x] Tạo dashboard admin với CTA `"Tạo tenant mới"` dễ thấy và route tới `/setup/tenants/new`.
+  - [x] Tạo onboarding shell desktop-first với stepper placeholder, scope header placeholder và readiness panel placeholder.
+  - [x] Đặt tất cả component business-specific của flow này dưới `apps/web/src/features/admin-onboarding/*`; không đẩy sớm vào `libs/ui`.
+  - [x] Dùng `shadcn/ui` làm primitive layer và Tailwind CSS cho layout/tokens ban đầu.
+- [x] Dựng foundation REST/OpenAPI cho onboarding (AC: 5)
+  - [x] Bật OpenAPI/Swagger bootstrap cho `api`.
+  - [x] Chuẩn hóa success envelope `{ data, meta? }` và error envelope `{ error: { code, message, details?, requestId? } }`.
+  - [x] Tạo shared contract/common types tối thiểu để frontend/backend mở rộng tiếp mà không copy-paste.
+  - [x] Chỉ scaffold foundation; không implement persistence thật cho tenant/branch ở story này.
+- [x] Bổ sung test và smoke coverage cho foundation (AC: 1, 3, 4, 5)
+  - [x] Thêm unit/smoke tests tối thiểu cho dashboard CTA, onboarding shell render, và API bootstrap/contract helpers.
+  - [x] Giữ test co-located với source; chỉ tạo e2e nếu Nx scaffold mặc định đã có và test thực sự đo được behavior của story.
+
+### Review Findings
+
+- [x] [Review][Patch] Đánh dấu story là `review` và check xong toàn bộ checklist khi phần implementation vẫn còn `untracked`, nên change set được review chưa thực sự chứa các thay đổi đã được tuyên bố [_bmad-output/implementation-artifacts/1-1-set-up-initial-project-from-starter-template.md:3]
+- [x] [Review][Patch] Mã lỗi API đang dùng `snake_case` (`bad_request`, `not_found`, `internal_server_error`) thay vì `camelCase` như contract đã nêu [apps/api/src/common/http/api-exception.filter.ts:34]
 
 ## Dev Notes
 
@@ -200,14 +205,89 @@ GPT-5.4 (model ID: gpt-5.4)
 ### Debug Log References
 
 - Story creation workflow synthesis from sprint status, planning artifacts, repo inspection, git history, and latest-version documentation.
+- Scaffolded Nx integrated monorepo from generators, then resolved pnpm build-script approvals required by Nx/Next/Nest installs.
+- Completed RED-GREEN cycle with failing route/API tests before implementing dashboard CTA, onboarding shell placeholders, request-id/error envelopes, and Swagger bootstrap.
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created.
 - Story intentionally scopes only workspace foundation, onboarding shell foundation, and REST/OpenAPI scaffolding.
 - No previous story intelligence was available because this is the first story in the sprint.
+- Scaffolded `web` and `api` applications plus root workspace tooling, env sample, Docker dev stack, and shared `libs/contracts` foundation.
+- Replaced Nx starter screens with a dashboard CTA and desktop-first onboarding shell using Tailwind CSS plus shadcn-style button primitives under `apps/web/src/features/admin-onboarding/*`.
+- Added API foundation for Swagger/OpenAPI, standardized success/error envelopes, request IDs, and smoke coverage for UI render plus API bootstrap routes.
 
 ### File List
 
+- `.editorconfig`
+- `.env.example`
+- `.gitignore`
+- `.prettierignore`
+- `.prettierrc`
+- `.vscode/extensions.json`
+- `.vscode/launch.json`
 - `_bmad-output/implementation-artifacts/1-1-set-up-initial-project-from-starter-template.md`
 - `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `README.md`
+- `apps/api/eslint.config.mjs`
+- `apps/api/jest.config.cts`
+- `apps/api/project.json`
+- `apps/api/src/app/app.controller.spec.ts`
+- `apps/api/src/app/app.controller.ts`
+- `apps/api/src/app/app.http.spec.ts`
+- `apps/api/src/app/app.module.ts`
+- `apps/api/src/app/app.service.spec.ts`
+- `apps/api/src/app/app.service.ts`
+- `apps/api/src/assets/.gitkeep`
+- `apps/api/src/common/http/api-exception.filter.ts`
+- `apps/api/src/common/http/api-response.ts`
+- `apps/api/src/common/http/request-id.middleware.ts`
+- `apps/api/src/common/openapi/swagger.ts`
+- `apps/api/src/main.ts`
+- `apps/api/tsconfig.app.json`
+- `apps/api/tsconfig.json`
+- `apps/api/tsconfig.spec.json`
+- `apps/api/webpack.config.js`
+- `apps/web/.swcrc`
+- `apps/web/eslint.config.mjs`
+- `apps/web/index.d.ts`
+- `apps/web/jest.config.cts`
+- `apps/web/next.config.js`
+- `apps/web/next-env.d.ts`
+- `apps/web/project.json`
+- `apps/web/public/.gitkeep`
+- `apps/web/public/favicon.ico`
+- `apps/web/specs/index.spec.tsx` (deleted)
+- `apps/web/src/app/(admin)/dashboard/page.spec.tsx`
+- `apps/web/src/app/(admin)/dashboard/page.tsx`
+- `apps/web/src/app/(admin)/setup/tenants/new/page.spec.tsx`
+- `apps/web/src/app/(admin)/setup/tenants/new/page.tsx`
+- `apps/web/src/app/api/hello/route.ts` (deleted)
+- `apps/web/src/app/global.css`
+- `apps/web/src/app/layout.tsx`
+- `apps/web/src/app/page.module.css` (deleted)
+- `apps/web/src/app/page.tsx`
+- `apps/web/src/components/ui/button.tsx`
+- `apps/web/src/features/admin-onboarding/components/create-tenant-entry.tsx`
+- `apps/web/src/features/admin-onboarding/components/readiness-panel.tsx`
+- `apps/web/src/features/admin-onboarding/components/scope-header.tsx`
+- `apps/web/src/features/admin-onboarding/components/setup-stepper.tsx`
+- `apps/web/src/lib/utils.ts`
+- `apps/web/src/test-setup.ts`
+- `apps/web/tsconfig.json`
+- `apps/web/tsconfig.spec.json`
+- `docker-compose.dev.yml`
+- `eslint.config.mjs`
+- `jest.config.ts`
+- `jest.preset.js`
+- `libs/contracts/src/index.ts`
+- `nx.json`
+- `package.json`
+- `pnpm-lock.yaml`
+- `pnpm-workspace.yaml`
+- `postcss.config.mjs`
+- `tsconfig.base.json`
+
+## Change Log
+
+- 2026-05-13: Scaffolded Nx integrated workspace with Next.js `web` app, NestJS `api` app, pnpm tooling, Docker local stack, Tailwind/shadcn-style onboarding UI placeholders, shared contracts, and Swagger/error-envelope foundations for Story 1.1.

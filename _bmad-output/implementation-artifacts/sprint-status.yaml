@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: "2026-05-13T09:49:40.896+07:00"
-last_updated: "2026-05-13T10:30:46.822+07:00"
+last_updated: "2026-05-13T11:28:41.891+07:00"
 project: "POS_BlueCoral"
 project_key: "NOKEY"
 tracking_system: "file-system"
@@ -43,7 +43,7 @@ story_location: "/home/hung/Desktop/Dev_BlueCoral/POS_BlueCoral/_bmad-output/imp
 
 development_status:
   epic-1: in-progress
-  1-1-set-up-initial-project-from-starter-template: ready-for-dev
+  1-1-set-up-initial-project-from-starter-template: done
   1-2-tao-tenant-va-branch-dau-tien-voi-nen-du-lieu-dung-scope: ready-for-dev
   1-3-guided-setup-wizard-voi-scope-header-va-readiness-panel: ready-for-dev
   1-4-review-guardrails-va-publish-tenant-branch-an-toan: ready-for-dev
