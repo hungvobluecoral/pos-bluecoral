@@ -1,6 +1,8 @@
 interface ScopeHeaderProps {
   branchId?: string;
   branchName?: string;
+  currentStepLabel: string;
+  readinessLabel: string;
   tenantId?: string;
   tenantName?: string;
 }
@@ -8,6 +10,8 @@ interface ScopeHeaderProps {
 export function ScopeHeader({
   branchId,
   branchName,
+  currentStepLabel,
+  readinessLabel,
   tenantId,
   tenantName,
 }: ScopeHeaderProps) {
@@ -33,7 +37,7 @@ export function ScopeHeader({
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
               Tenant
@@ -55,6 +59,28 @@ export function ScopeHeader({
             {branchId ? (
               <p className="mt-2 text-xs text-slate-400">ID: {branchId}</p>
             ) : null}
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+              Bước hiện tại
+            </p>
+            <p className="mt-2 text-base font-semibold text-white">
+              {currentStepLabel}
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              Điều hướng theo wizard để giữ scope nhất quán.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+              Readiness hiện tại
+            </p>
+            <p className="mt-2 text-base font-semibold text-white">
+              {readinessLabel}
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              Luôn phản ánh trạng thái scope và tiến độ onboarding.
+            </p>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 # Story 1.3: Guided setup wizard với scope header và readiness panel
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -30,35 +30,46 @@ so that I can complete setup without guessing what branch or tenant I am affecti
 
 ## Tasks / Subtasks
 
-- [ ] Khóa prerequisite và source of truth trước khi mở rộng wizard (AC: 1, 2, 3, 4, 5)
-  - [ ] Xác minh source tree thực tế đã có output của Story 1.1 và Story 1.2; nếu repo vẫn chỉ có docs/artifacts, **không** được triển khai 1.3 trên một cấu trúc tưởng tượng.
-  - [ ] Giữ flow trong `apps/web/src/features/admin-onboarding/*`; không đẩy sớm `scope-header`, `setup-wizard-stepper`, `readiness-panel` sang `libs/ui`.
-  - [ ] Preserve contracts, naming, state vocabulary và route structure đã chốt ở architecture/UX docs và hai story trước.
-- [ ] Mở rộng onboarding shell thành guided wizard có scope hiện hữu xuyên suốt (AC: 1, 2)
-  - [ ] Cập nhật `apps/web/src/app/(admin)/setup/tenants/new/page.tsx` hoặc layout liên quan để giữ `tenant`, `branch`, `currentStep` luôn hiện diện.
-  - [ ] Tạo hoặc hoàn thiện `scope-header.tsx` với tenant name, branch name, trạng thái readiness ngắn, và current step rõ ràng.
-  - [ ] Tạo hoặc hoàn thiện `setup-wizard-stepper.tsx` với các trạng thái `active`, `completed`, `warning`, `blocked`; hiển thị explicit blocking reason thay vì chỉ đổi màu.
-  - [ ] Giữ source of truth của scope rõ ràng từ route/query/provisioning result; không duplicate mơ hồ giữa nhiều stores.
-- [ ] Triển khai readiness model và panel quay lại đúng bước cần sửa (AC: 2, 3)
-  - [ ] Tạo hoặc hoàn thiện `readiness-panel.tsx` để hiển thị checklist item, trạng thái, missing conditions, và action link quay lại step liên quan.
-  - [ ] Dùng vocabulary readiness/wizard thống nhất theo architecture: `active`, `completed`, `warning`, `blocked`, `ready`.
-  - [ ] Thiết kế readiness state sao cho có thể lấy từ validation/form state hiện tại và mở rộng sang backend-driven signals ở story sau mà không đổi semantics.
-  - [ ] Không triển khai review/publish flow hoàn chỉnh của Story 1.4 trong story này.
-- [ ] Gắn validation inline với readiness impact và recovery path ngắn (AC: 3, 4)
-  - [ ] Tổ chức form/schema theo từng step dưới `components/`, `schemas/`, `hooks/`, `stores/` của feature admin-onboarding.
-  - [ ] Mỗi lỗi phải chỉ rõ field, step liên quan, và tác động tới readiness; tránh dồn lỗi vào toast toàn cục.
-  - [ ] Khi step bị `warning` hoặc `blocked`, wizard và readiness panel phải chỉ cùng một nguyên nhân ở hai góc nhìn nhất quán.
-  - [ ] Giữ user-facing messaging ngắn, rõ, scope-aware; không dùng ngôn ngữ kỹ thuật nội bộ.
-- [ ] Hoàn thiện responsive + accessibility guardrails cho wizard (AC: 1, 2, 3, 4, 5)
-  - [ ] Giữ desktop-first layout với stepper/scope/readiness rõ ràng; tablet dùng progressive collapse nhưng vẫn luôn giữ context scope, progress hiện tại và readiness status.
-  - [ ] Bảo đảm keyboard navigation đầy đủ cho stepper, form actions, readiness links và focus order giữa các panel.
-  - [ ] Dùng semantic HTML/ARIA cho stepper, alerts, validation, readiness states; không phụ thuộc chỉ vào màu để thể hiện trạng thái.
-  - [ ] Giữ skeleton/loading states ổn định layout nếu có fetch/re-hydration trong wizard.
-- [ ] Bổ sung test và regression coverage cho guided flow (AC: 1, 2, 3, 4, 5)
-  - [ ] Viết unit/component tests co-located cho `scope-header`, `setup-wizard-stepper`, `readiness-panel` và validation behavior.
-  - [ ] Kiểm tra keyboard navigation, focus states, ARIA labels và semantic status text cho các custom component chính.
-  - [ ] Thêm tests chứng minh admin có thể quay lại đúng step từ readiness panel và status/validation đồng bộ đúng khi dữ liệu đổi.
-  - [ ] Nếu đã có test setup phù hợp từ 1.1/1.2, thêm integration coverage cho wizard state + onboarding route; chỉ thêm e2e nếu nó thật sự đo được behavior quan trọng của story.
+- [x] Khóa prerequisite và source of truth trước khi mở rộng wizard (AC: 1, 2, 3, 4, 5)
+  - [x] Xác minh source tree thực tế đã có output của Story 1.1 và Story 1.2; nếu repo vẫn chỉ có docs/artifacts, **không** được triển khai 1.3 trên một cấu trúc tưởng tượng.
+  - [x] Giữ flow trong `apps/web/src/features/admin-onboarding/*`; không đẩy sớm `scope-header`, `setup-wizard-stepper`, `readiness-panel` sang `libs/ui`.
+  - [x] Preserve contracts, naming, state vocabulary và route structure đã chốt ở architecture/UX docs và hai story trước.
+- [x] Mở rộng onboarding shell thành guided wizard có scope hiện hữu xuyên suốt (AC: 1, 2)
+  - [x] Cập nhật `apps/web/src/app/(admin)/setup/tenants/new/page.tsx` hoặc layout liên quan để giữ `tenant`, `branch`, `currentStep` luôn hiện diện.
+  - [x] Tạo hoặc hoàn thiện `scope-header.tsx` với tenant name, branch name, trạng thái readiness ngắn, và current step rõ ràng.
+  - [x] Tạo hoặc hoàn thiện `setup-wizard-stepper.tsx` với các trạng thái `active`, `completed`, `warning`, `blocked`; hiển thị explicit blocking reason thay vì chỉ đổi màu.
+  - [x] Giữ source of truth của scope rõ ràng từ route/query/provisioning result; không duplicate mơ hồ giữa nhiều stores.
+- [x] Triển khai readiness model và panel quay lại đúng bước cần sửa (AC: 2, 3)
+  - [x] Tạo hoặc hoàn thiện `readiness-panel.tsx` để hiển thị checklist item, trạng thái, missing conditions, và action link quay lại step liên quan.
+  - [x] Dùng vocabulary readiness/wizard thống nhất theo architecture: `active`, `completed`, `warning`, `blocked`, `ready`.
+  - [x] Thiết kế readiness state sao cho có thể lấy từ validation/form state hiện tại và mở rộng sang backend-driven signals ở story sau mà không đổi semantics.
+  - [x] Không triển khai review/publish flow hoàn chỉnh của Story 1.4 trong story này.
+- [x] Gắn validation inline với readiness impact và recovery path ngắn (AC: 3, 4)
+  - [x] Tổ chức form/schema theo từng step dưới `components/`, `schemas/`, `hooks/`, `stores/` của feature admin-onboarding.
+  - [x] Mỗi lỗi phải chỉ rõ field, step liên quan, và tác động tới readiness; tránh dồn lỗi vào toast toàn cục.
+  - [x] Khi step bị `warning` hoặc `blocked`, wizard và readiness panel phải chỉ cùng một nguyên nhân ở hai góc nhìn nhất quán.
+  - [x] Giữ user-facing messaging ngắn, rõ, scope-aware; không dùng ngôn ngữ kỹ thuật nội bộ.
+- [x] Hoàn thiện responsive + accessibility guardrails cho wizard (AC: 1, 2, 3, 4, 5)
+  - [x] Giữ desktop-first layout với stepper/scope/readiness rõ ràng; tablet dùng progressive collapse nhưng vẫn luôn giữ context scope, progress hiện tại và readiness status.
+  - [x] Bảo đảm keyboard navigation đầy đủ cho stepper, form actions, readiness links và focus order giữa các panel.
+  - [x] Dùng semantic HTML/ARIA cho stepper, alerts, validation, readiness states; không phụ thuộc chỉ vào màu để thể hiện trạng thái.
+  - [x] Giữ skeleton/loading states ổn định layout nếu có fetch/re-hydration trong wizard.
+- [x] Bổ sung test và regression coverage cho guided flow (AC: 1, 2, 3, 4, 5)
+  - [x] Viết unit/component tests co-located cho `scope-header`, `setup-wizard-stepper`, `readiness-panel` và validation behavior.
+  - [x] Kiểm tra keyboard navigation, focus states, ARIA labels và semantic status text cho các custom component chính.
+  - [x] Thêm tests chứng minh admin có thể quay lại đúng step từ readiness panel và status/validation đồng bộ đúng khi dữ liệu đổi.
+  - [x] Nếu đã có test setup phù hợp từ 1.1/1.2, thêm integration coverage cho wizard state + onboarding route; chỉ thêm e2e nếu nó thật sự đo được behavior quan trọng của story.
+
+### Review Findings
+
+- [x] [Review][Patch] Progressive collapse cho tablet van chua duoc cu the hoa trong implementation hien tai, trong khi spec chi yeu cau o muc hanh vi cao [apps/web/src/features/admin-onboarding/components/tenant-provisioning-shell.tsx:349]
+- [x] [Review][Patch] Blocked steps van co the mo truc tiep tu stepper va readiness panel, vuot qua guided linear flow [apps/web/src/features/admin-onboarding/components/tenant-provisioning-shell.tsx:289]
+- [x] [Review][Patch] Scope header khong hien tenant/branch dang duoc chinh sua truoc khi provisioning thanh cong [apps/web/src/features/admin-onboarding/components/scope-header.tsx:18]
+- [x] [Review][Patch] Readiness impact chi hien o side panel, chua hien inline ngay canh field loi [apps/web/src/features/admin-onboarding/components/tenant-provisioning-shell.tsx:93]
+- [x] [Review][Patch] Readiness panel khong the bieu dien mot trang thai `ready` thuc su, lam lech semantics giua wizard va readiness [apps/web/src/features/admin-onboarding/components/readiness-panel.tsx:3]
+- [x] [Review][Patch] Server-side field errors khong duoc dong bo nguoc vao readiness model va status badges [apps/web/src/features/admin-onboarding/components/tenant-provisioning-shell.tsx:323]
+- [x] [Review][Patch] Sau khi provisioning thanh cong, current step khong duoc cap nhat nen scope header co the hien tien do cu [apps/web/src/features/admin-onboarding/components/tenant-provisioning-shell.tsx:314]
+- [x] [Review][Patch] Step changes chua co focus/announcement handling phu hop, va test moi van chua cover keyboard behavior that su [apps/web/src/app/(admin)/setup/tenants/new/page.spec.tsx:218]
 
 ## Dev Notes
 
@@ -218,14 +229,35 @@ GPT-5.4 (model ID: gpt-5.4)
 ### Debug Log References
 
 - Story creation workflow synthesis from sprint status, epics, PRD, architecture, UX spec, previous story artifacts, repo inspection, git history, and current framework/version references.
+- Verified Story 1.1/1.2 source outputs exist in `apps/web` before extending the wizard so Story 1.3 stayed grounded in the real repo structure.
+- Added targeted red-green cycles for the onboarding route plus co-located component specs covering scope visibility, stepper state semantics, readiness recovery links, and validation/readiness synchronization.
+- Confirmed `pnpm test` and `pnpm lint` pass after implementation; `pnpm build` still hits the pre-existing Next.js `/_global-error` prerender failure that was already present before Story 1.3 changes.
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created.
 - Story explicitly calls out the mismatch between planning state and current repository state so the dev agent does not implement against imaginary files.
 - Story keeps 1.3 focused on guided UX orchestration, scope visibility, readiness signaling, inline validation, and accessibility, while preserving Story 1.4 review/publish scope.
+- Verified the onboarding implementation builds on the materialized Story 1.1/1.2 source tree and keeps all scope/readiness orchestration inside `apps/web/src/features/admin-onboarding`.
+- Extended the tenant onboarding shell with persistent scope context, current step + readiness summary, explicit wizard statuses, and step buttons carrying `aria-current`/blocking-reason semantics.
+- Replaced placeholder readiness content with a validation-driven checklist that reports readiness impact in plain language and offers direct recovery links back to the relevant step.
+- Added co-located component coverage for `scope-header`, `setup-wizard-stepper`, `readiness-panel`, plus richer onboarding route integration coverage for navigation, validation impact, and scope updates.
+- Repo validation after the change is green for tests/lint; build remains blocked by the unchanged pre-existing Next.js `/_global-error` prerender issue during `web:build`.
+
+### Change Log
+
+- 2026-05-13: Implemented Story 1.3 guided onboarding shell, readiness synchronization, accessibility improvements, and component/integration coverage.
 
 ### File List
 
 - `_bmad-output/implementation-artifacts/1-3-guided-setup-wizard-voi-scope-header-va-readiness-panel.md`
 - `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `apps/web/src/app/(admin)/setup/tenants/new/page.spec.tsx`
+- `apps/web/src/features/admin-onboarding/components/readiness-panel.spec.tsx`
+- `apps/web/src/features/admin-onboarding/components/readiness-panel.tsx`
+- `apps/web/src/features/admin-onboarding/components/scope-header.spec.tsx`
+- `apps/web/src/features/admin-onboarding/components/scope-header.tsx`
+- `apps/web/src/features/admin-onboarding/components/setup-stepper.tsx`
+- `apps/web/src/features/admin-onboarding/components/setup-wizard-stepper.spec.tsx`
+- `apps/web/src/features/admin-onboarding/components/setup-wizard-stepper.tsx`
+- `apps/web/src/features/admin-onboarding/components/tenant-provisioning-shell.tsx`

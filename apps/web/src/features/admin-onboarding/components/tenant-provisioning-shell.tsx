@@ -1,6 +1,13 @@
 'use client';
 
-import { type ChangeEvent, type FormEvent, useMemo, useState } from 'react';
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { ApiErrorBody, ProvisionTenantRequest } from '@pos-bluecoral/contracts';
 import { buttonClassName } from '../../../components/ui/button';
 import {
@@ -12,9 +19,9 @@ import {
   type ProvisionTenantFieldErrors,
   validateProvisionTenantForm,
 } from '../schemas/provision-tenant-form';
-import { ReadinessPanel } from './readiness-panel';
+import { ReadinessPanel, type ReadinessItem } from './readiness-panel';
 import { ScopeHeader } from './scope-header';
-import { SetupStepper } from './setup-stepper';
+import { SetupStepper, type SetupStep } from './setup-wizard-stepper';
 
 type ProvisioningContextState = {
   branchId?: string;
@@ -23,6 +30,60 @@ type ProvisioningContextState = {
   tenantId?: string;
   tenantName?: string;
 };
+
+type WizardStepId = 'branch' | 'readiness' | 'tenant';
+
+const tenantStepFields: Array<keyof ProvisionTenantRequest> = [
+  'tenantName',
+  'tenantSlug',
+];
+
+const branchStepFields: Array<keyof ProvisionTenantRequest> = [
+  'branchName',
+  'branchSlug',
+  'branchCode',
+  'locale',
+  'currency',
+  'timezone',
+];
+
+const wizardStepLabels: Record<WizardStepId, string> = {
+  branch: 'Branch đầu tiên',
+  readiness: 'Readiness và kiểm tra',
+  tenant: 'Tenant cơ bản',
+};
+
+const wizardStepTitles: Record<string, WizardStepId> = {
+  'Branch đầu tiên': 'branch',
+  'Readiness và kiểm tra': 'readiness',
+  'Tenant cơ bản': 'tenant',
+};
+
+const fieldLabels: Record<keyof ProvisionTenantRequest, string> = {
+  actorId: 'actor',
+  branchCode: 'mã branch',
+  branchName: 'tên branch đầu tiên',
+  branchSlug: 'slug branch',
+  currency: 'currency',
+  locale: 'locale',
+  tenantName: 'tên tenant',
+  tenantSlug: 'slug tenant',
+  timezone: 'timezone',
+};
+
+function createReadinessImpact(fieldName: keyof ProvisionTenantRequest) {
+  return tenantStepFields.includes(fieldName)
+    ? 'Scope chưa thể sẵn sàng.'
+    : 'Readiness chưa thể hoàn tất.';
+}
+
+function toReadinessDescription(message: string, impact: string) {
+  const normalizedMessage = message.trim().replace(/\.$/, '');
+
+  return `${normalizedMessage.charAt(0).toLowerCase()}${normalizedMessage.slice(1)} nên ${impact
+    .replace(/\.$/, '')
+    .toLowerCase()}.`;
+}
 
 function Field({
   error,
@@ -85,19 +146,209 @@ export function TenantProvisioningShell() {
   const [fieldErrors, setFieldErrors] = useState<ProvisionTenantFieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReadinessExpanded, setIsReadinessExpanded] = useState(true);
+  const [isStepperExpanded, setIsStepperExpanded] = useState(true);
+  const [currentStep, setCurrentStep] = useState<WizardStepId>('tenant');
   const [contextState, setContextState] = useState<ProvisioningContextState>({});
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
   const hasProvisionedContext = Boolean(
     contextState.tenantId && contextState.branchId,
   );
 
-  const readinessItems = useMemo(
-    () => ({
-      contractReady: hasProvisionedContext,
-      scopeReady: hasProvisionedContext,
-    }),
-    [hasProvisionedContext],
+  const validationErrors = useMemo(
+    () => validateProvisionTenantForm(formValues),
+    [formValues],
   );
+  const effectiveFieldErrors = useMemo(() => {
+    const mergedErrors: ProvisionTenantFieldErrors = {
+      ...validationErrors,
+    };
+
+    (Object.entries(fieldErrors) as Array<
+      [keyof ProvisionTenantRequest, string | undefined]
+    >).forEach(([fieldName, message]) => {
+      if (message) {
+        mergedErrors[fieldName] = message;
+      }
+    });
+
+    return mergedErrors;
+  }, [fieldErrors, validationErrors]);
+  const tenantStepReady = tenantStepFields.every(
+    (fieldName) => !effectiveFieldErrors[fieldName],
+  );
+  const branchStepReady = branchStepFields.every(
+    (fieldName) => !effectiveFieldErrors[fieldName],
+  );
+  const allWizardInputsReady = tenantStepReady && branchStepReady;
+
+  useEffect(() => {
+    stepHeadingRef.current?.focus();
+  }, [currentStep]);
+
+  const wizardSteps = useMemo<SetupStep[]>(() => {
+    if (hasProvisionedContext) {
+      return [
+        {
+          detail: 'Tenant đầu tiên đã được provision và scope đã được khóa.',
+          state: 'completed',
+          title: 'Tenant cơ bản',
+        },
+        {
+          detail: 'Context branch đã sẵn sàng sau provisioning.',
+          state: 'completed',
+          title: 'Branch đầu tiên',
+        },
+        {
+          detail:
+            'Readiness đã có đủ scope dữ liệu, nhưng review/publish vẫn ở story kế tiếp.',
+          state: 'completed',
+          title: 'Readiness và kiểm tra',
+        },
+      ];
+    }
+
+    return [
+      {
+        detail: 'Thu thập thông tin tenant làm nguồn scope đầu tiên cho onboarding.',
+        state: currentStep === 'tenant' ? 'active' : 'completed',
+        title: 'Tenant cơ bản',
+      },
+      {
+        blockingReason:
+          currentStep === 'tenant'
+            ? 'Hoàn tất thông tin tenant để mở khóa bước branch.'
+            : undefined,
+        detail: tenantStepReady
+          ? 'Giữ context branch rõ ràng trước khi tổng hợp readiness.'
+          : 'Bước branch chờ tenant basics hợp lệ trước khi tiếp tục.',
+        state: currentStep === 'branch' ? 'active' : tenantStepReady ? 'ready' : 'blocked',
+        title: 'Branch đầu tiên',
+      },
+      {
+        blockingReason:
+          currentStep === 'readiness' || allWizardInputsReady
+            ? undefined
+            : 'Hoàn tất thông tin tenant và branch trước khi kiểm tra readiness.',
+        detail: allWizardInputsReady
+          ? 'Checklist readiness đã có thể tổng hợp từ dữ liệu hiện tại.'
+          : 'Readiness sẽ chỉ mở khi wizard đã có đủ tenant và branch hợp lệ.',
+        state:
+          currentStep === 'readiness'
+            ? 'active'
+            : allWizardInputsReady
+              ? 'ready'
+              : 'blocked',
+        title: 'Readiness và kiểm tra',
+      },
+    ];
+  }, [allWizardInputsReady, currentStep, hasProvisionedContext, tenantStepReady]);
+
+  const currentReadinessLabel = hasProvisionedContext
+    ? 'Đã hoàn tất'
+    : allWizardInputsReady
+      ? 'Sẵn sàng kiểm tra'
+      : currentStep === 'tenant'
+        ? 'Chưa sẵn sàng'
+        : 'Đang hoàn thiện';
+  const readinessItems = useMemo<ReadinessItem[]>(() => {
+    const tenantPrimaryErrorField = tenantStepFields.find(
+      (fieldName) => Boolean(effectiveFieldErrors[fieldName]),
+    );
+    const branchPrimaryErrorField = branchStepFields.find(
+      (fieldName) => Boolean(effectiveFieldErrors[fieldName]),
+    );
+    const tenantPrimaryError = tenantPrimaryErrorField
+      ? effectiveFieldErrors[tenantPrimaryErrorField]
+      : undefined;
+    const branchPrimaryError = branchPrimaryErrorField
+      ? effectiveFieldErrors[branchPrimaryErrorField]
+      : undefined;
+    const tenantHasServerFieldError = tenantPrimaryErrorField
+      ? Boolean(fieldErrors[tenantPrimaryErrorField]) &&
+        fieldErrors[tenantPrimaryErrorField] !== validationErrors[tenantPrimaryErrorField]
+      : false;
+    const branchHasServerFieldError = branchPrimaryErrorField
+      ? Boolean(fieldErrors[branchPrimaryErrorField]) &&
+        fieldErrors[branchPrimaryErrorField] !== validationErrors[branchPrimaryErrorField]
+      : false;
+
+    return [
+      {
+        actionLabel: 'Mở bước tenant cơ bản',
+        description: tenantPrimaryErrorField
+          ? tenantHasServerFieldError
+            ? toReadinessDescription(
+                tenantPrimaryError ?? fieldErrors[tenantPrimaryErrorField] ?? '',
+                createReadinessImpact(tenantPrimaryErrorField),
+              )
+            : `Thiếu ${fieldLabels[tenantPrimaryErrorField]} nên scope chưa thể sẵn sàng.`
+          : 'Thông tin tenant đã đủ để khóa context và mở tiếp bước branch.',
+        actionDisabled: false,
+        onAction: () => setCurrentStep('tenant'),
+        state: tenantStepReady ? 'completed' : 'blocked',
+        title: 'Thông tin tenant cơ bản',
+      },
+      {
+        actionLabel: 'Mở bước branch đầu tiên',
+        description: branchPrimaryErrorField
+          ? branchHasServerFieldError
+            ? toReadinessDescription(
+                branchPrimaryError ?? fieldErrors[branchPrimaryErrorField] ?? '',
+                createReadinessImpact(branchPrimaryErrorField),
+              )
+            : `Thiếu ${fieldLabels[branchPrimaryErrorField]} nên readiness chưa thể hoàn tất.`
+          : tenantStepReady
+            ? 'Branch mặc định đã có đủ dữ liệu để wizard tiến tới readiness.'
+            : 'Hoàn tất tenant trước để bước branch không còn bị chặn.',
+        actionDisabled: !tenantStepReady,
+        onAction: () => setCurrentStep('branch'),
+        state: tenantStepReady && branchStepReady ? 'completed' : tenantStepReady ? 'warning' : 'blocked',
+        title: 'Thông tin branch đầu tiên',
+      },
+      {
+        actionLabel: 'Mở bước readiness và kiểm tra',
+        description: hasProvisionedContext
+          ? 'TenantId, branchId và requestId đã được khóa từ provisioning result.'
+          : allWizardInputsReady
+            ? 'Dữ liệu đã đủ để lưu và khóa scope từ provisioning result.'
+            : 'Scope chỉ được khóa sau khi tenant và branch đều hợp lệ.',
+        actionDisabled: !allWizardInputsReady,
+        onAction: () => setCurrentStep('readiness'),
+        state: hasProvisionedContext ? 'completed' : allWizardInputsReady ? 'ready' : 'blocked',
+        title: 'Khóa scope từ provisioning result',
+      },
+    ];
+  }, [allWizardInputsReady, branchStepReady, effectiveFieldErrors, hasProvisionedContext, tenantStepReady]);
+
+  const inlineFieldErrors = useMemo(() => {
+    const resolvedInlineErrors: ProvisionTenantFieldErrors = {};
+
+    (Object.entries(effectiveFieldErrors) as Array<
+      [keyof ProvisionTenantRequest, string | undefined]
+    >).forEach(([fieldName, message]) => {
+      if (!message) {
+        return;
+      }
+
+      resolvedInlineErrors[fieldName] = `${message} ${createReadinessImpact(fieldName)}`;
+    });
+
+    return resolvedInlineErrors;
+  }, [effectiveFieldErrors]);
+
+  const canOpenStep = (stepId: WizardStepId) => {
+    if (stepId === 'tenant') {
+      return true;
+    }
+
+    if (stepId === 'branch') {
+      return tenantStepReady;
+    }
+
+    return allWizardInputsReady;
+  };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -110,6 +361,35 @@ export function TenantProvisioningShell() {
       ...current,
       [name]: undefined,
     }));
+  };
+
+  const moveToBranchStep = () => {
+    const tenantStepErrors = validateProvisionTenantForm(formValues);
+    const nextFieldErrors: ProvisionTenantFieldErrors = {};
+
+    tenantStepFields.forEach((fieldName) => {
+      const error = tenantStepErrors[fieldName];
+      if (error) {
+        nextFieldErrors[fieldName] = error;
+      }
+    });
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors((current) => ({
+        ...current,
+        ...nextFieldErrors,
+      }));
+      return;
+    }
+
+    setCurrentStep('branch');
+  };
+
+  const handleStepSelect = (stepTitle: string) => {
+    const nextStep = wizardStepTitles[stepTitle];
+    if (nextStep && canOpenStep(nextStep)) {
+      setCurrentStep(nextStep);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -138,6 +418,7 @@ export function TenantProvisioningShell() {
         tenantName: response.data.tenant.name,
       });
       setFieldErrors({});
+      setCurrentStep('readiness');
     } catch (error) {
       if (error instanceof ProvisionTenantApiError) {
         const apiFieldErrors = mapApiErrors(error.payload);
@@ -158,24 +439,47 @@ export function TenantProvisioningShell() {
     <>
       <ScopeHeader
         branchId={contextState.branchId}
-        branchName={contextState.branchName}
+        branchName={contextState.branchName ?? (formValues.branchName.trim() || undefined)}
+        currentStepLabel={wizardStepLabels[currentStep]}
+        readinessLabel={currentReadinessLabel}
         tenantId={contextState.tenantId}
-        tenantName={contextState.tenantName}
+        tenantName={contextState.tenantName ?? (formValues.tenantName.trim() || undefined)}
       />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
         <section className="space-y-6">
-          <SetupStepper hasProvisionedContext={hasProvisionedContext} />
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+            <button
+              aria-controls="tenant-onboarding-stepper"
+              aria-expanded={isStepperExpanded}
+              className={buttonClassName({ size: 'default', variant: 'secondary' })}
+              type="button"
+              onClick={() => setIsStepperExpanded((current) => !current)}
+            >
+              Thu gọn tiến trình onboarding
+            </button>
+            {isStepperExpanded ? (
+              <div id="tenant-onboarding-stepper">
+                <SetupStepper steps={wizardSteps} onStepSelect={handleStepSelect} />
+              </div>
+            ) : null}
+          </div>
 
           <section className="rounded-2xl border border-white/10 bg-slate-900/70 p-6">
             <div className="mb-6 space-y-3">
-              <h2 className="text-xl font-semibold text-white">
-                Provision tenant va branch dau tien
+              <h2 ref={stepHeadingRef} tabIndex={-1} className="text-xl font-semibold text-white">
+                {currentStep === 'branch'
+                  ? 'Cấu hình branch đầu tiên'
+                  : currentStep === 'readiness'
+                    ? 'Kiểm tra readiness trước khi lưu'
+                    : 'Provision tenant va branch dau tien'}
               </h2>
               <p className="max-w-3xl text-sm text-slate-300">
-                Form nay giu source of truth cho tenant/branch context de Story
-                1.3 tiep tuc mo rong wizard, readiness va review ma khong mat
-                scope.
+                {currentStep === 'branch'
+                  ? 'Bước này giữ branch context rõ ràng trước khi wizard tổng hợp readiness.'
+                  : currentStep === 'readiness'
+                    ? 'Readiness tóm tắt các điều kiện còn thiếu trước khi gửi provisioning.'
+                    : 'Form này giữ source of truth cho tenant/branch context để Story 1.3 tiếp tục mở rộng wizard, readiness và review mà không mất scope.'}
               </p>
               {formError ? (
                 <p className="text-sm text-rose-300">{formError}</p>
@@ -185,56 +489,56 @@ export function TenantProvisioningShell() {
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field
-                  error={fieldErrors.tenantName}
+                  error={inlineFieldErrors.tenantName}
                   label="Tên tenant"
                   name="tenantName"
                   onChange={handleChange}
                   value={formValues.tenantName}
                 />
                 <Field
-                  error={fieldErrors.tenantSlug}
+                  error={inlineFieldErrors.tenantSlug}
                   label="Slug tenant"
                   name="tenantSlug"
                   onChange={handleChange}
                   value={formValues.tenantSlug}
                 />
                 <Field
-                  error={fieldErrors.branchName}
+                  error={inlineFieldErrors.branchName}
                   label="Tên branch đầu tiên"
                   name="branchName"
                   onChange={handleChange}
                   value={formValues.branchName}
                 />
                 <Field
-                  error={fieldErrors.branchSlug}
+                  error={inlineFieldErrors.branchSlug}
                   label="Slug branch"
                   name="branchSlug"
                   onChange={handleChange}
                   value={formValues.branchSlug}
                 />
                 <Field
-                  error={fieldErrors.branchCode}
+                  error={inlineFieldErrors.branchCode}
                   label="Mã branch"
                   name="branchCode"
                   onChange={handleChange}
                   value={formValues.branchCode}
                 />
                 <Field
-                  error={fieldErrors.locale}
+                  error={inlineFieldErrors.locale}
                   label="Locale"
                   name="locale"
                   onChange={handleChange}
                   value={formValues.locale}
                 />
                 <Field
-                  error={fieldErrors.currency}
+                  error={inlineFieldErrors.currency}
                   label="Currency"
                   name="currency"
                   onChange={handleChange}
                   value={formValues.currency}
                 />
                 <Field
-                  error={fieldErrors.timezone}
+                  error={inlineFieldErrors.timezone}
                   label="Timezone"
                   name="timezone"
                   onChange={handleChange}
@@ -243,6 +547,15 @@ export function TenantProvisioningShell() {
               </div>
 
               <div className="flex items-center gap-4">
+                {currentStep === 'tenant' ? (
+                  <button
+                    className={buttonClassName({ size: 'lg', variant: 'secondary' })}
+                    type="button"
+                    onClick={moveToBranchStep}
+                  >
+                    Tiếp tục tới bước branch
+                  </button>
+                ) : null}
                 <button
                   className={buttonClassName({ size: 'lg' })}
                   disabled={isSubmitting}
@@ -260,10 +573,24 @@ export function TenantProvisioningShell() {
           </section>
         </section>
 
-        <ReadinessPanel
-          hasProvisionedContext={hasProvisionedContext}
-          readinessItems={readinessItems}
-        />
+        <section className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+          <button
+            aria-controls="tenant-onboarding-readiness"
+            aria-expanded={isReadinessExpanded}
+            className={buttonClassName({ size: 'default', variant: 'secondary' })}
+            type="button"
+            onClick={() => setIsReadinessExpanded((current) => !current)}
+          >
+            Thu gọn readiness panel
+          </button>
+          {isReadinessExpanded ? (
+            <div id="tenant-onboarding-readiness">
+              <ReadinessPanel
+                items={readinessItems}
+              />
+            </div>
+          ) : null}
+        </section>
       </div>
     </>
   );

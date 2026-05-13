@@ -1,4 +1,14 @@
+import { buttonClassName } from '../../../components/ui/button';
+
 type StepState = 'active' | 'blocked' | 'completed' | 'ready' | 'warning';
+
+const stateLabels: Record<StepState, string> = {
+  active: 'Đang thực hiện',
+  blocked: 'Bị chặn',
+  completed: 'Đã hoàn tất',
+  ready: 'Sẵn sàng',
+  warning: 'Cần chú ý',
+};
 
 const stateClasses: Record<StepState, string> = {
   active: 'border-cyan-300 bg-cyan-400/10 text-cyan-100',
@@ -8,51 +18,19 @@ const stateClasses: Record<StepState, string> = {
   warning: 'border-violet-300 bg-violet-400/10 text-violet-100',
 };
 
-interface SetupStepperProps {
-  hasProvisionedContext?: boolean;
+export interface SetupStep {
+  blockingReason?: string;
+  detail: string;
+  state: StepState;
+  title: string;
 }
 
-export function SetupStepper({ hasProvisionedContext }: SetupStepperProps) {
-  const setupSteps: Array<{
-    detail: string;
-    state: StepState;
-    title: string;
-  }> = hasProvisionedContext
-    ? [
-        {
-          title: 'Tenant cơ bản',
-          detail: 'Tenant đầu tiên đã được provision và scope đã được khóa.',
-          state: 'completed',
-        },
-        {
-          title: 'Branch đầu tiên',
-          detail: 'Context branch đã sẵn sàng để Story 1.3 mở rộng wizard.',
-          state: 'active',
-        },
-        {
-          title: 'Review và publish',
-          detail: 'Readiness panel đang chờ các bước tiếp theo của onboarding.',
-          state: 'warning',
-        },
-      ]
-    : [
-        {
-          title: 'Tenant cơ bản',
-          detail: 'Thu thập thông tin nền để mở rộng story 1.2.',
-          state: 'active',
-        },
-        {
-          title: 'Branch đầu tiên',
-          detail: 'Giữ scope branch rõ ràng trước khi publish.',
-          state: 'blocked',
-        },
-        {
-          title: 'Review và publish',
-          detail: 'Readiness panel sẽ tổng hợp các điều kiện go-live.',
-          state: 'ready',
-        },
-      ];
+interface SetupStepperProps {
+  onStepSelect?: (stepTitle: string) => void;
+  steps: SetupStep[];
+}
 
+export function SetupStepper({ onStepSelect, steps }: SetupStepperProps) {
   return (
     <nav
       aria-label="Tiến trình onboarding tenant"
@@ -63,7 +41,7 @@ export function SetupStepper({ hasProvisionedContext }: SetupStepperProps) {
         <span className="text-sm text-slate-400">Story 1.1 foundation</span>
       </div>
       <ol className="grid gap-3 md:grid-cols-3">
-        {setupSteps.map((step, index) => (
+        {steps.map((step, index) => (
           <li
             key={step.title}
             aria-current={step.state === 'active' ? 'step' : undefined}
@@ -71,10 +49,23 @@ export function SetupStepper({ hasProvisionedContext }: SetupStepperProps) {
           >
             <div className="mb-2 flex items-center justify-between text-sm font-medium">
               <span>Bước {index + 1}</span>
-              <span>{step.state}</span>
+              <span>{stateLabels[step.state]}</span>
             </div>
-            <p className="text-base font-semibold">{step.title}</p>
+            <button
+              aria-current={step.state === 'active' ? 'step' : undefined}
+              className={buttonClassName({ size: 'default', variant: 'secondary' })}
+              disabled={step.state === 'blocked'}
+              type="button"
+              onClick={() => onStepSelect?.(step.title)}
+            >
+              Mở bước {step.title}
+            </button>
             <p className="mt-2 text-sm text-slate-200/90">{step.detail}</p>
+            {step.blockingReason ? (
+              <p className="mt-3 text-sm text-slate-100">
+                Lý do bị chặn: {step.blockingReason}
+              </p>
+            ) : null}
           </li>
         ))}
       </ol>
