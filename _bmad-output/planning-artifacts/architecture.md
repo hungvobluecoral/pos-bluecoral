@@ -195,10 +195,13 @@ Generator-based workflow, dependency graph rõ và khả năng mở rộng dần
 - **Client/UI state:** Zustand chỉ giữ UI state cục bộ như wizard progress, temporary interaction state, filter state hoặc shell state; không cache lâu dài server data.
 - **Forms:** React Hook Form cho admin setup flows, auth, staff management và các form nghiệp vụ phức tạp.
 - **Component architecture:** chia theo feature/module boundaries; custom “scope-aware” patterns ở lại gần feature trước khi trích xuất.
+- **Dashboard surface:** admin dashboard không chỉ là CTA entry point mà còn là tenant overview surface tối thiểu; tenant count/list nên nằm ở boundary rõ ràng trong dashboard feature thay vì trộn vào onboarding shell.
 - **Design system:** shadcn/ui là primitive layer; POS_BlueCoral-specific patterns gồm setup wizard stepper, scope header/context bar, readiness panel/checklist, review summary panel, risk alert và permission/config summary blocks.
 - **Responsive direction:** desktop-first, tablet support gần ngang desktop; mobile chỉ tối thiểu cho tra cứu/flow nhẹ.
 - **Accessibility direction:** WCAG AA, keyboard navigation đầy đủ, semantic HTML/ARIA cho stepper, alerts, validation summary và readiness states.
 - **Performance direction:** tận dụng Server Components cho shell/data phù hợp, giữ client state tối thiểu cần thiết và tránh nhồi logic vào global stores.
+
+Tenant overview trên dashboard, nếu cần backend support, phải đi qua read endpoint hoặc service riêng cho summary/list và vẫn tuân theo shared REST envelope cùng scope semantics hiện có; không được tạo API ad-hoc phá vỡ contract chung của onboarding/admin surfaces.
 
 ### Infrastructure & Deployment
 

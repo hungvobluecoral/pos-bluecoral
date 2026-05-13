@@ -86,6 +86,8 @@ Về kỹ thuật, thành công nghĩa là mỗi module có ranh giới rõ, tr�
 
 MVP cần chứng minh hai điều: tenant/branch isolation được thiết kế đúng ngay từ đầu, và modular architecture thực sự giúp mở rộng hệ thống mà không làm nó rối đi. Vì vậy MVP nên bao gồm: Multi Tenant, Branch, Order, Product, Inventory, Staff và Payment. Đây là tập capability tối thiểu để kiểm chứng được cả vận hành tenant/branch lẫn khả năng phối hợp giữa các module lõi.
 
+Ở lớp trải nghiệm admin, MVP không chỉ cần một CTA để bắt đầu onboarding tenant mới mà còn cần một dashboard đủ tối thiểu để system admin xác nhận kết quả provisioning. Điều đó có nghĩa là dashboard admin phải giữ vai trò **entry point + operational landing surface**, gồm CTA **"Tạo tenant mới"** và tenant overview cơ bản như tenant count cùng danh sách tenant đã tạo.
+
 ### Growth Features (Post-MVP)
 
 Sau khi lõi ổn định, giai đoạn growth nên mở rộng theo các capability làm hệ thống cạnh tranh hơn nhưng chưa bắt buộc để chứng minh nền móng: Promotion, Customer, rule handling phức tạp hơn, báo cáo vận hành, và các cải tiến giúp quản trị nhiều branch mượt hơn. Ở giai đoạn này, trọng tâm không phải thêm thật nhiều tính năng, mà là thêm đúng các module mà vẫn giữ được ranh giới kiến trúc sạch.
@@ -117,6 +119,7 @@ Ta gặp staff/cashier ở nhịp vận hành hằng ngày, nơi mọi thao tác
 Các journey này làm lộ ra một nhóm capability rất rõ:
 - tenant/branch context phải luôn hiển thị rõ trong các flow quan trọng;
 - system admin cần flow tạo tenant/branch có guardrails chống gán nhầm;
+- sau khi provisioning, system admin cần dashboard có tenant overview tối thiểu để xác nhận kết quả và quay lại đúng context;
 - dữ liệu và quyền phải được ràng buộc chặt theo tenant/branch;
 - store manager và staff cần luôn nhìn thấy và thao tác trong đúng phạm vi branch;
 - kiến trúc module phải đủ sạch để việc thêm module mới không phá vỡ các guardrails trên.

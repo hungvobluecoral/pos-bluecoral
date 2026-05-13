@@ -261,6 +261,24 @@ So that I can go live without creating tenant or branch mistakes.
 **And** khi publish thành công, hệ thống trả về trạng thái có nghĩa nghiệp vụ rằng branch đầu tiên đã sẵn sàng vận hành hoặc nếu chưa thì nói rõ điều kiện còn thiếu
 **And** các kết quả validation scope chính được lưu/báo cáo theo cách hỗ trợ kiểm tra tính đúng scope của flow trước khi mở rộng thêm capability mới
 
+### Story 1.5: Dashboard tenant overview sau onboarding
+
+As a system admin,
+I want the admin dashboard to show tenant count and a list of created tenants,
+So that I can confirm provisioning outcomes and quickly return to the right tenant context.
+
+**Implements:** FR1, FR5, FR34
+
+**Acceptance Criteria:**
+
+**Given** system admin mở dashboard sau khi đã có tenant được tạo
+**When** dashboard tải dữ liệu overview
+**Then** hệ thống hiển thị tenant count rõ ràng và danh sách tenant đã tạo với thông tin tối thiểu phù hợp scope
+**And** CTA "Tạo tenant mới" vẫn là primary action để bắt đầu onboarding tiếp
+**And** dashboard có empty, loading và error states rõ ràng mà vẫn giữ layout ổn định
+**And** mỗi tenant item cung cấp action phù hợp để xem lại summary hoặc tiếp tục vào đúng context khả dụng
+**And** dữ liệu dashboard tuân theo contract/API envelope chuẩn, không tạo thêm semantics cạnh tranh với guided onboarding flow
+
 ## Epic 2: Scoped Staff Access & Branch Governance
 
 System admin và store manager có thể tạo staff, gán role theo tenant/branch và enforce truy cập đúng scope trong vận hành hằng ngày.

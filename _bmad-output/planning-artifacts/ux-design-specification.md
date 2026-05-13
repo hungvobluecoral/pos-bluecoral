@@ -199,6 +199,7 @@ Hiện tại mental model của admin thường bị chi phối bởi các hệ 
 ### 2.3 Success Criteria
 
 - Admin có thể bắt đầu flow từ dashboard bằng một điểm vào rõ ràng, không cần tìm kiếm.
+- Sau khi đã tạo tenant, admin vẫn có thể quay lại dashboard và thấy ngay tenant overview cơ bản thay vì chỉ một CTA trống.
 - Mỗi bước trong flow cho thấy rõ đang cấu hình gì, thuộc tenant/branch nào, và bước nào còn thiếu.
 - Hệ thống gom các quyết định cốt lõi vào một tiến trình mạch lạc thay vì bắt admin nhảy giữa nhiều màn hình.
 - Admin nhận được feedback liên tục rằng mình đang đi đúng hướng.
@@ -213,6 +214,7 @@ POS_BlueCoral không cần một interaction hoàn toàn mới; hướng phù h�
 **1. Initiation**
 - Người dùng bắt đầu từ nút **“Tạo tenant mới”** rất rõ trên dashboard.
 - CTA này đóng vai trò lời mời vào một flow có cấu trúc, không chỉ mở ra một form trống.
+- Khi đã có dữ liệu, dashboard cũng phải cho người dùng thấy tenant count và danh sách tenant ở mức summary để xác nhận kết quả provisioning ngay tại điểm quay lại đầu tiên.
 
 **2. Interaction**
 - Admin đi qua các bước theo thứ tự hợp lý: thông tin tenant, branch đầu tiên, quyền/cấu hình nền, review.
@@ -227,6 +229,7 @@ POS_BlueCoral không cần một interaction hoàn toàn mới; hướng phù h�
 **4. Completion**
 - Khi hoàn tất, người dùng thấy trạng thái rõ rằng tenant và branch đầu tiên đã đạt mức sẵn sàng vận hành.
 - Nếu còn thiếu điều kiện, hệ thống phải chỉ ra rõ những việc tiếp theo thay vì chỉ báo “lưu thành công”.
+- Sau completion, dashboard trở thành landing surface đủ hữu ích để admin nhìn lại các tenant đã tạo và quyết định bước tiếp theo mà không mất context.
 
 ## Visual Design Foundation
 
