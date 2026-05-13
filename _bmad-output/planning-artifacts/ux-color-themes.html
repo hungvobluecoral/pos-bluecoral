@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POS_BlueCoral - UX Color Themes</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: #08111f;
+      color: #e2e8f0;
+      padding: 28px;
+    }
+    .page { max-width: 1440px; margin: 0 auto; }
+    .hero {
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(20,184,166,0.12));
+      margin-bottom: 24px;
+    }
+    .hero h1 { margin: 0 0 10px; }
+    .hero p { margin: 0; color: #a8bdd8; max-width: 900px; line-height: 1.6; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+    }
+    .theme {
+      border-radius: 22px;
+      overflow: hidden;
+      background: #0f172a;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+    }
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      min-height: 120px;
+    }
+    .swatch {
+      display: flex;
+      align-items: end;
+      padding: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.95);
+    }
+    .content { padding: 16px; }
+    .content h2 { margin: 0 0 8px; font-size: 18px; }
+    .content p { margin: 0 0 12px; color: #a8bdd8; line-height: 1.5; font-size: 14px; }
+    .tokens {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .token {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 12px;
+      color: #c8d5e6;
+    }
+    .mini-ui {
+      border-radius: 16px;
+      padding: 14px;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    .mini-ui .row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .mini-ui .box {
+      flex: 1;
+      background: white;
+      border: 1px solid #dbe4f0;
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 46px;
+      font-size: 12px;
+    }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>POS_BlueCoral — Color Theme Visualizer</h1>
+      <p>
+        Các theme dưới đây cùng bám theo mục tiêu “professional / modern / calm” cho desktop admin,
+        nhưng khác nhau ở cách dùng blue-slate, teal-coral và màu semantic cho readiness, warning và scope clarity.
+      </p>
+    </section>
+
+    <section class="grid">
+      <article class="theme">
+        <div class="swatches">
+          <div class="swatch" style="background:#1d4ed8;">#1D4ED8</div>
+          <div class="swatch" style="background:#0f172a;">#0F172A</div>
+          <div class="swatch" style="background:#14b8a6;">#14B8A6</div>
+          <div class="swatch" style="background:#22c55e;">#22C55E</div>
+          <div class="swatch" style="background:#f59e0b;">#F59E0B</div>
+        </div>
+        <div class="content">
+          <h2>Theme 01 — Blue Slate Control</h2>
+          <p>Hướng cân bằng và phù hợp nhất cho POS_BlueCoral: tin cậy, rõ hierarchy, semantic states sạch.</p>
+          <div class="tokens">
+            <div class="token"><strong>Primary</strong><br />Blue-slate mạnh cho CTA và progress</div>
+            <div class="token"><strong>Accent</strong><br />Teal dịu cho trạng thái tích cực / info</div>
+          </div>
+          <div class="mini-ui">
+            <div class="row"><div class="box"><strong>Tenant setup</strong><br />Step 2 / 4</div><div class="box"><strong>Readiness</strong><br />1 mục còn thiếu</div></div>
+            <div class="chips">
+              <span class="chip" style="background:#dbeafe;color:#1d4ed8;">Primary action</span>
+              <span class="chip" style="background:#dcfce7;color:#15803d;">Ready</span>
+              <span class="chip" style="background:#fef3c7;color:#b45309;">Warning</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="theme">
+        <div class="swatches">
+          <div class="swatch" style="background:#155e75;">#155E75</div>
+          <div class="swatch" style="background:#0f172a;">#0F172A</div>
+          <div class="swatch" style="background:#fb7185;">#FB7185</div>
+          <div class="swatch" style="background:#16a34a;">#16A34A</div>
+          <div class="swatch" style="background:#f59e0b;">#F59E0B</div>
+        </div>
+        <div class="content">
+          <h2>Theme 02 — Coral Contrast Calm</h2>
+          <p>Nhấn coral nhiều hơn để tạo cá tính thương hiệu, nhưng vẫn giữ nền tối và semantic rõ.</p>
+          <div class="tokens">
+            <div class="token"><strong>Primary</strong><br />Teal đậm cho chất operational calm</div>
+            <div class="token"><strong>Accent</strong><br />Coral dùng tiết chế cho highlight</div>
+          </div>
+          <div class="mini-ui">
+            <div class="row"><div class="box"><strong>Scope header</strong><br />Blue Coral Retail</div><div class="box"><strong>Branch</strong><br />District 1</div></div>
+            <div class="chips">
+              <span class="chip" style="background:#cffafe;color:#155e75;">Info</span>
+              <span class="chip" style="background:#ffe4e6;color:#be123c;">Scope accent</span>
+              <span class="chip" style="background:#dcfce7;color:#166534;">Success</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="theme">
+        <div class="swatches">
+          <div class="swatch" style="background:#2563eb;">#2563EB</div>
+          <div class="swatch" style="background:#111827;">#111827</div>
+          <div class="swatch" style="background:#06b6d4;">#06B6D4</div>
+          <div class="swatch" style="background:#84cc16;">#84CC16</div>
+          <div class="swatch" style="background:#ef4444;">#EF4444</div>
+        </div>
+        <div class="content">
+          <h2>Theme 03 — High Clarity Enterprise</h2>
+          <p>Thiên enterprise hơn, contrast mạnh hơn, hợp khi muốn bảng biểu và trạng thái thật sắc nét.</p>
+          <div class="tokens">
+            <div class="token"><strong>Primary</strong><br />Blue rõ để neo action và navigation</div>
+            <div class="token"><strong>Accent</strong><br />Cyan dùng cho support / filter / info</div>
+          </div>
+          <div class="mini-ui">
+            <div class="row"><div class="box"><strong>Review</strong><br />Ready to publish</div><div class="box"><strong>Issue</strong><br />Missing payment preset</div></div>
+            <div class="chips">
+              <span class="chip" style="background:#dbeafe;color:#1d4ed8;">Next</span>
+              <span class="chip" style="background:#fee2e2;color:#b91c1c;">Error</span>
+              <span class="chip" style="background:#ecfccb;color:#4d7c0f;">Ready</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="theme">
+        <div class="swatches">
+          <div class="swatch" style="background:#334155;">#334155</div>
+          <div class="swatch" style="background:#e2e8f0;color:#0f172a;">#E2E8F0</div>
+          <div class="swatch" style="background:#0ea5e9;">#0EA5E9</div>
+          <div class="swatch" style="background:#10b981;">#10B981</div>
+          <div class="swatch" style="background:#f97316;">#F97316</div>
+        </div>
+        <div class="content">
+          <h2>Theme 04 — Light Workspace Neutral</h2>
+          <p>Rất nhẹ và sáng, ưu tiên calm workspace. Hợp nếu muốn giảm cảm giác “hệ thống nặng”.</p>
+          <div class="tokens">
+            <div class="token"><strong>Primary</strong><br />Slate trung tính cho khung chính</div>
+            <div class="token"><strong>Accent</strong><br />Sky blue cho highlight và info</div>
+          </div>
+          <div class="mini-ui">
+            <div class="row"><div class="box"><strong>Checklist</strong><br />3 / 4 complete</div><div class="box"><strong>Next step</strong><br />Assign permissions</div></div>
+            <div class="chips">
+              <span class="chip" style="background:#e0f2fe;color:#0369a1;">Guidance</span>
+              <span class="chip" style="background:#d1fae5;color:#047857;">Complete</span>
+              <span class="chip" style="background:#ffedd5;color:#c2410c;">Missing</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+</body>
+</html>

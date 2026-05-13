@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POS_BlueCoral - UX Design Directions</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --panel: #0f1b2d;
+      --panel-2: #13233a;
+      --line: rgba(148, 163, 184, 0.18);
+      --text: #e5eefb;
+      --muted: #9fb2cf;
+      --primary: #3b82f6;
+      --accent: #14b8a6;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 20px 45px rgba(0, 0, 0, 0.28);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(20, 184, 166, 0.18), transparent 25%),
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.22), transparent 30%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    .page {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(20, 184, 166, 0.12));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .hero h1 { margin: 0 0 10px; font-size: 32px; }
+    .hero p { margin: 0; color: var(--muted); max-width: 900px; line-height: 1.6; }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .legend-item,
+    .direction {
+      background: rgba(15, 27, 45, 0.72);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+
+    .legend-item strong { display: block; margin-bottom: 6px; }
+    .legend-item span { color: var(--muted); font-size: 14px; line-height: 1.45; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 22px;
+    }
+
+    .direction {
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .dir-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .dir-head h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+
+    .dir-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .tag {
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .mockup {
+      min-height: 360px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+      color: #0f172a;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      min-height: 360px;
+    }
+
+    .nav {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .nav .pill {
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+
+    .content {
+      padding: 18px;
+      background: #f8fafc;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .title-stack h3 {
+      margin: 0 0 4px;
+      font-size: 18px;
+    }
+
+    .title-stack span {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+    }
+
+    .card h4 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #0f172a;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .field,
+    .metric {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 52px;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    .field strong,
+    .metric strong { display: block; color: #0f172a; margin-bottom: 4px; }
+
+    .cta-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #e2e8f0; color: #0f172a; }
+    .btn-accent { background: var(--accent); color: white; }
+
+    .steps {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .step {
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      background: #e2e8f0;
+      color: #334155;
+      min-width: 84px;
+      text-align: center;
+    }
+
+    .step.active { background: rgba(59,130,246,0.15); color: #1d4ed8; }
+    .step.done { background: rgba(34,197,94,0.15); color: #15803d; }
+    .step.warn { background: rgba(245,158,11,0.16); color: #b45309; }
+
+    .note {
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .direction ul {
+      margin: 14px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .direction li + li { margin-top: 6px; }
+
+    .direction.linear .mockup .content { background: #f8fbff; }
+    .direction.stripe .mockup .content { background: #f7f8fc; }
+    .direction.vercel .mockup .content { background: #fafafa; }
+    .direction.calm .mockup .content { background: #f7fcfb; }
+    .direction.command .mockup .content { background: #f8fafc; }
+    .direction.review .mockup .content { background: #fcfcff; }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .panel-grid { grid-template-columns: 1fr; }
+      .shell { grid-template-columns: 1fr; }
+      .nav { flex-direction: row; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>POS_BlueCoral — UX Design Directions</h1>
+      <p>
+        Bộ showcase này trực quan hóa 6 hướng thiết kế cho flow <strong>“Tạo tenant mới”</strong> trên desktop admin.
+        Mỗi hướng thay đổi bố cục, mức độ visual weight, cách thể hiện progress, context và readiness để hỗ trợ quyết định direction cho UX của POS_BlueCoral.
+      </p>
+      <div class="legend">
+        <div class="legend-item"><strong>Ưu tiên UX</strong><span>Scope awareness, readiness rõ, flow dẫn hướng, kiểm soát quyền/cấu hình.</span></div>
+        <div class="legend-item"><strong>Foundation</strong><span>shadcn/ui, desktop-first, professional / modern / calm.</span></div>
+        <div class="legend-item"><strong>Người dùng chính</strong><span>System admin nội bộ trong môi trường back-office.</span></div>
+        <div class="legend-item"><strong>Mục tiêu cảm xúc</strong><span>Bình tĩnh, kiểm soát tốt, tự tin sẵn sàng vận hành.</span></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="direction linear">
+        <div class="dir-head">
+          <div>
+            <h2>Direction 01 — Guided Linear Flow</h2>
+            <p>Hierarchy rõ, progress mạnh, layout nhẹ và dẫn hướng trực tiếp như một onboarding flow tối ưu.</p>
+          </div>
+          <span class="tag">Nhanh + Rõ ràng</span>
+        </div>
+        <div class="mockup">
+          <div class="shell">
+            <aside class="nav">
+              <div class="pill">Overview</div>
+              <div class="pill">Tenants</div>
+              <div class="pill">Branches</div>
+              <div class="pill">Access</div>
+            </aside>
+            <div class="content">
+              <div class="topbar">
+                <div class="title-stack">
+                  <h3>Tạo tenant mới</h3>
+                  <span>Thiết lập tenant, branch đầu tiên và readiness</span>
+                </div>
+                <div class="chips">
+                  <span class="chip">Scope OK</span>
+                  <span class="chip">Desktop flow</span>
+                </div>
+              </div>
+              <div class="steps">
+                <div class="step active">Tenant</div>
+                <div class="step">Branch</div>
+                <div class="step">Quyền</div>
+                <div class="step">Review</div>
+              </div>
+              <div class="panel-grid">
+                <div class="card">
+                  <h4>Thông tin tenant</h4>
+                  <div class="row"><div class="field"><strong>Tên tenant</strong>Blue Coral Retail</div><div class="field"><strong>Mã tenant</strong>BCR001</div></div>
+                  <div class="row"><div class="field"><strong>Loại hình</strong>Chuỗi bán lẻ</div><div class="field"><strong>Trạng thái</strong>Sẵn sàng bước tiếp</div></div>
+                  <div class="cta-row"><button class="btn btn-primary">Tiếp tục</button><button class="btn btn-secondary">Lưu nháp</button></div>
+                </div>
+                <div class="card">
+                  <h4>Readiness</h4>
+                  <div class="metric"><strong>2 / 4 bước</strong>Đã điền đủ tenant profile</div>
+                  <div class="metric"><strong>Còn thiếu</strong>Branch đầu tiên, quyền mặc định</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul>
+          <li>Phù hợp nếu muốn flow chính rất mạch lạc và giảm cognitive load tối đa.</li>
+          <li>Ưu tiên trải nghiệm “bắt đầu nhanh, đi đúng từng bước”.</li>
+        </ul>
+      </article>
+
+      <article class="direction stripe">
+        <div class="dir-head">
+          <div>
+            <h2>Direction 02 — Structured Control Panel</h2>
+            <p>Nặng tính quản trị hơn, phân tầng thông tin rõ kiểu Stripe Dashboard, hỗ trợ kiểm soát cấu hình tốt.</p>
+          </div>
+          <span class="tag">Kiểm soát + Tin cậy</span>
+        </div>
+        <div class="mockup">
+          <div class="shell">
+            <aside class="nav">
+              <div class="pill">Home</div>
+              <div class="pill">Setup</div>
+              <div class="pill">Policies</div>
+              <div class="pill">Audit</div>
+            </aside>
+            <div class="content">
+              <div class="topbar">
+                <div class="title-stack">
+                  <h3>Tenant provisioning center</h3>
+                  <span>Kiểm soát cấu hình, quyền và review phạm vi ảnh hưởng</span>
+                </div>
+                <div class="chips">
+                  <span class="chip">Risk-aware</span>
+                  <span class="chip">Audit visible</span>
+                </div>
+              </div>
+              <div class="panel-grid">
+                <div class="card">
+                  <h4>Current configuration</h4>
+                  <div class="row"><div class="field"><strong>Tenant</strong>Blue Coral Retail</div><div class="field"><strong>Branch đầu tiên</strong>District 1</div></div>
+                  <div class="row"><div class="field"><strong>Role preset</strong>Admin + Manager</div><div class="field"><strong>Warnings</strong>1 mục cần rà soát</div></div>
+                  <div class="cta-row"><button class="btn btn-primary">Mở review</button><button class="btn btn-secondary">Sửa quyền</button></div>
+                </div>
+                <div class="card">
+                  <h4>Scope impact</h4>
+                  <div class="metric"><strong>Tenant scope</strong>Không có xung đột</div>
+                  <div class="metric"><strong>Branch scope</strong>Thiếu cấu hình thuế mặc định</div>
+                  <div class="metric"><strong>Audit note</strong>2 thay đổi sẽ áp dụng sau khi publish</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul>
+          <li>Mạnh khi bài toán quyền và cấu hình liên quan là trung tâm.</li>
+          <li>Tạo cảm giác nghiêm túc, đáng tin và có chiều sâu quản trị.</li>
+        </ul>
+      </article>
+
+      <article class="direction vercel">
+        <div class="dir-head">
+          <div>
+            <h2>Direction 03 — Lightweight Tech Admin</h2>
+            <p>Tối giản, nhẹ, phản hồi nhanh, gần phong cách Vercel nhưng vẫn giữ semantic state rõ cho back-office.</p>
+          </div>
+          <span class="tag">Nhẹ + Modern</span>
+        </div>
+        <div class="mockup">
+          <div class="shell">
+            <aside class="nav">
+              <div class="pill">+</div>
+              <div class="pill">Setup</div>
+              <div class="pill">Branch</div>
+              <div class="pill">Logs</div>
+            </aside>
+            <div class="content">
+              <div class="topbar">
+                <div class="title-stack">
+                  <h3>New tenant</h3>
+                  <span>Fast setup with strong inline feedback</span>
+                </div>
+                <div class="chips">
+                  <span class="chip">2m estimated</span>
+                  <span class="chip">Auto-check</span>
+                </div>
+              </div>
+              <div class="card">
+                <h4>Quick setup</h4>
+                <div class="row"><div class="field"><strong>Tenant name</strong>Blue Coral Retail</div><div class="field"><strong>Slug</strong>blue-coral</div><div class="field"><strong>Status</strong>Valid</div></div>
+                <div class="row"><div class="field"><strong>Branch</strong>District 1</div><div class="field"><strong>Timezone</strong>Asia/Ho_Chi_Minh</div><div class="field"><strong>Preset</strong>Retail default</div></div>
+                <div class="cta-row"><button class="btn btn-accent">Create tenant</button><button class="btn btn-secondary">Advanced options</button></div>
+              </div>
+              <div class="note">Điểm mạnh: cảm giác thao tác nhanh, bề mặt gọn. Điểm cần cân bằng: tránh quá “tech” khiến readiness không đủ nổi bật.</div>
+            </div>
+          </div>
+        </div>
+        <ul>
+          <li>Phù hợp nếu muốn sản phẩm trông hiện đại, gọn và ít chrome.</li>
+          <li>Cần bổ sung readiness summary để không đánh mất cảm giác kiểm soát.</li>
+        </ul>
+      </article>
+
+      <article class="direction calm">
+        <div class="dir-head">
+          <div>
+            <h2>Direction 04 — Calm Operational Workspace</h2>
+            <p>Nhấn mạnh cảm giác bình tĩnh, hỗ trợ và ít áp lực. Dùng nhiều phân vùng mềm, guidance rõ và semantics dịu.</p>
+          </div>
+          <span class="tag">Calm + Safe</span>
+        </div>
+        <div class="mockup">
+          <div class="shell">
+            <aside class="nav">
+              <div class="pill">Workspace</div>
+              <div class="pill">Setup flow</div>
+              <div class="pill">Guides</div>
+              <div class="pill">Help</div>
+            </aside>
+            <div class="content">
+              <div class="topbar">
+                <div class="title-stack">
+                  <h3>Onboarding workspace</h3>
+                  <span>Một không gian làm việc tập trung cho tenant setup</span>
+                </div>
+                <div class="chips">
+                  <span class="chip">Calm mode</span>
+                  <span class="chip">Guided flow</span>
+                </div>
+              </div>
+              <div class="panel-grid">
+                <div class="card">
+                  <h4>Bước hiện tại: Branch đầu tiên</h4>
+                  <div class="row"><div class="field"><strong>Địa chỉ</strong>Nguyễn Huệ, Q1</div><div class="field"><strong>Tax config</strong>Đã kết nối</div></div>
+                  <div class="row"><div class="field"><strong>Múi giờ</strong>Asia/Ho_Chi_Minh</div><div class="field"><strong>Readiness</strong>Còn 1 mục</div></div>
+                </div>
+                <div class="card">
+                  <h4>Hỗ trợ ngữ cảnh</h4>
+                  <div class="metric"><strong>Bạn đang cấu hình cho</strong>Blue Coral Retail</div>
+                  <div class="metric"><strong>Tiếp theo</strong>Thiết lập quyền mặc định</div>
+                  <div class="metric"><strong>Cảnh báo</strong>Chưa có payment preset</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul>
+          <li>Khớp mạnh với mục tiêu cảm xúc bình tĩnh và kiểm soát tốt.</li>
+          <li>Tốt cho các flow nhiều bước cần hỗ trợ ngữ cảnh liên tục.</li>
+        </ul>
+      </article>
+
+      <article class="direction command">
+        <div class="dir-head">
+          <div>
+            <h2>Direction 05 — Dense Command Dashboard</h2>
+            <p>Mật độ thông tin cao hơn, tối ưu cho power admin muốn nhìn nhiều trạng thái cùng lúc.</p>
+          </div>
+          <span class="tag">Dense + Power user</span>
+        </div>
+        <div class="mockup">
+          <div class="shell">
+            <aside class="nav">
+              <div class="pill">Tenants</div>
+              <div class="pill">Quick Ops</div>
+              <div class="pill">Rules</div>
+              <div class="pill">Status</div>
+            </aside>
+            <div class="content">
+              <div class="topbar">
+                <div class="title-stack">
+                  <h3>Provisioning command center</h3>
+                  <span>Nhiều trạng thái, nhiều panel, ít chuyển cảnh</span>
+                </div>
+                <div class="chips">
+                  <span class="chip">Fast switching</span>
+                  <span class="chip">High density</span>
+                </div>
+              </div>
+              <div class="card">
+                <h4>Quick operations</h4>
+                <div class="row"><div class="field"><strong>Create tenant</strong>Ready</div><div class="field"><strong>Add branch</strong>Pending</div><div class="field"><strong>Apply preset</strong>Optional</div></div>
+                <div class="row"><div class="field"><strong>Permission matrix</strong>Inline</div><div class="field"><strong>Tax profile</strong>Draft</div><div class="field"><strong>Audit output</strong>Live</div></div>
+                <div class="cta-row"><button class="btn btn-primary">Publish all</button><button class="btn btn-secondary">Save workbench</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul>
+          <li>Hiệu quả với admin giàu kinh nghiệm, nhưng dễ tăng tải nhận thức.</li>
+          <li>Ít phù hợp nếu muốn V1 tạo cảm giác calm-first.</li>
+        </ul>
+      </article>
+
+      <article class="direction review">
+        <div class="dir-head">
+          <div>
+            <h2>Direction 06 — Review-First Governance</h2>
+            <p>Trọng tâm là preview phạm vi ảnh hưởng và readiness panel, rất phù hợp với safety narrative của sản phẩm.</p>
+          </div>
+          <span class="tag">Review + Governance</span>
+        </div>
+        <div class="mockup">
+          <div class="shell">
+            <aside class="nav">
+              <div class="pill">Setup</div>
+              <div class="pill">Review</div>
+              <div class="pill">Readiness</div>
+              <div class="pill">Publish</div>
+            </aside>
+            <div class="content">
+              <div class="topbar">
+                <div class="title-stack">
+                  <h3>Review before activation</h3>
+                  <span>Xác nhận scope, quyền và trạng thái go-live trước khi publish</span>
+                </div>
+                <div class="chips">
+                  <span class="chip">Safety-centric</span>
+                  <span class="chip">Go-live clarity</span>
+                </div>
+              </div>
+              <div class="steps">
+                <div class="step done">Tenant</div>
+                <div class="step done">Branch</div>
+                <div class="step warn">Quyền</div>
+                <div class="step active">Review</div>
+              </div>
+              <div class="panel-grid">
+                <div class="card">
+                  <h4>Configuration summary</h4>
+                  <div class="row"><div class="field"><strong>Tenant</strong>Blue Coral Retail</div><div class="field"><strong>Branch</strong>District 1</div></div>
+                  <div class="row"><div class="field"><strong>Role set</strong>Admin / Manager / Cashier</div><div class="field"><strong>Payment preset</strong>Missing</div></div>
+                  <div class="cta-row"><button class="btn btn-primary">Fix missing item</button><button class="btn btn-secondary">Publish when ready</button></div>
+                </div>
+                <div class="card">
+                  <h4>Readiness score</h4>
+                  <div class="metric"><strong>87%</strong>Sẵn sàng go-live sau 1 điều chỉnh</div>
+                  <div class="metric"><strong>Rủi ro chính</strong>Payment preset chưa gắn cho branch</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul>
+          <li>Rất mạnh nếu POS_BlueCoral muốn kể câu chuyện “operational safety”.</li>
+          <li>Dễ kết hợp với Direction 01 hoặc 04 để cân bằng tốc độ và kiểm soát.</li>
+        </ul>
+      </article>
+    </section>
+  </div>
+</body>
+</html>
