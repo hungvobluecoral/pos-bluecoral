@@ -276,7 +276,7 @@ describe('Tenant onboarding shell', () => {
       expect(within(scopeHeader).getByText('Blue Coral Retail')).toBeInTheDocument();
       expect(within(scopeHeader).getByText(/chi nhanh quan 1/i)).toBeInTheDocument();
       expect(
-        within(scopeHeader).getByText(/readiness và kiểm tra/i),
+        within(scopeHeader).getByText(/review và publish/i),
       ).toBeInTheDocument();
     });
   });
@@ -335,12 +335,415 @@ describe('Tenant onboarding shell', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows a review summary panel with capability impact before publish', () => {
+    render(<TenantSetupPage />);
+
+    fireEvent.change(screen.getByLabelText(/tên tenant/i), {
+      target: { value: 'Blue Coral Retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug tenant/i), {
+      target: { value: 'blue-coral-retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/tên branch đầu tiên/i), {
+      target: { value: 'Chi nhanh Quan 1' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug branch/i), {
+      target: { value: 'chi-nhanh-quan-1' },
+    });
+    fireEvent.change(screen.getByLabelText(/mã branch/i), {
+      target: { value: 'Q1' },
+    });
+    fireEvent.change(screen.getByLabelText(/locale/i), {
+      target: { value: 'vi-VN' },
+    });
+    fireEvent.change(screen.getByLabelText(/currency/i), {
+      target: { value: 'VND' },
+    });
+    fireEvent.change(screen.getByLabelText(/timezone/i), {
+      target: { value: 'Asia/Ho_Chi_Minh' },
+    });
+
+    fireEvent.click(
+      screen.getAllByRole('button', {
+        name: /mở bước readiness và kiểm tra/i,
+      })[0],
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /xem review trước khi publish/i,
+      }),
+    );
+
+    const reviewPanel = screen.getByRole('region', {
+      name: /review summary panel/i,
+    });
+
+    expect(
+      within(reviewPanel).getByRole('heading', {
+        name: /review trước khi publish/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(reviewPanel).getAllByText(/blue coral retail/i),
+    ).not.toHaveLength(0);
+    expect(
+      within(reviewPanel).getAllByText(/chi nhanh quan 1/i),
+    ).not.toHaveLength(0);
+    expect(within(reviewPanel).getByText(/tenant governance/i)).toBeInTheDocument();
+    expect(within(reviewPanel).getByText(/branch checkout/i)).toBeInTheDocument();
+    expect(
+      within(reviewPanel).getByRole('button', {
+        name: /publish tenant và branch/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('routes a valid primary action to the review step instead of publishing immediately', async () => {
+    render(<TenantSetupPage />);
+
+    fireEvent.change(screen.getByLabelText(/tên tenant/i), {
+      target: { value: 'Blue Coral Retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug tenant/i), {
+      target: { value: 'blue-coral-retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/tên branch đầu tiên/i), {
+      target: { value: 'Chi nhanh Quan 1' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug branch/i), {
+      target: { value: 'chi-nhanh-quan-1' },
+    });
+    fireEvent.change(screen.getByLabelText(/mã branch/i), {
+      target: { value: 'Q1' },
+    });
+    fireEvent.change(screen.getByLabelText(/locale/i), {
+      target: { value: 'vi-VN' },
+    });
+    fireEvent.change(screen.getByLabelText(/currency/i), {
+      target: { value: 'VND' },
+    });
+    fireEvent.change(screen.getByLabelText(/timezone/i), {
+      target: { value: 'Asia/Ho_Chi_Minh' },
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /lưu tenant và branch/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('region', {
+          name: /review summary panel/i,
+        }),
+      ).toBeInTheDocument();
+    });
+
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(
+      screen.getAllByRole('button', { name: /publish tenant và branch/i }),
+    ).toHaveLength(1);
+  });
+
+  it('blocks the publish button in the review panel after a scope-mismatch API error', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        error: {
+          code: 'scope-mismatch',
+          message: 'Provisioning tenant mới không chấp nhận tenant scope đã được gắn sẵn.',
+          requestId: 'req-blocked',
+        },
+      }),
+    });
+
+    render(<TenantSetupPage />);
+
+    fireEvent.change(screen.getByLabelText(/tên tenant/i), {
+      target: { value: 'Blue Coral Retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug tenant/i), {
+      target: { value: 'blue-coral-retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/tên branch đầu tiên/i), {
+      target: { value: 'Chi nhanh Quan 1' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug branch/i), {
+      target: { value: 'chi-nhanh-quan-1' },
+    });
+    fireEvent.change(screen.getByLabelText(/mã branch/i), {
+      target: { value: 'Q1' },
+    });
+    fireEvent.change(screen.getByLabelText(/locale/i), {
+      target: { value: 'vi-VN' },
+    });
+    fireEvent.change(screen.getByLabelText(/currency/i), {
+      target: { value: 'VND' },
+    });
+    fireEvent.change(screen.getByLabelText(/timezone/i), {
+      target: { value: 'Asia/Ho_Chi_Minh' },
+    });
+
+    fireEvent.click(
+      screen.getAllByRole('button', { name: /mở bước readiness và kiểm tra/i })[0],
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /xem review trước khi publish/i }),
+    );
+
+    const reviewPanel = screen.getByRole('region', { name: /review summary panel/i });
+
+    fireEvent.click(
+      within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/provisioning tenant mới không chấp nhận/i),
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+    ).toBeDisabled();
+    expect(
+      screen.getAllByRole('button', { name: /publish tenant và branch/i }),
+    ).toHaveLength(1);
+  });
+
+  it('keeps the review blocked after an unrelated field edit when the publish failure is scope-wide', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        error: {
+          code: 'scope-mismatch',
+          message: 'Scope không hợp lệ.',
+          requestId: 'req-blocked-clear',
+        },
+      }),
+    });
+
+    render(<TenantSetupPage />);
+
+    fireEvent.change(screen.getByLabelText(/tên tenant/i), {
+      target: { value: 'Blue Coral Retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug tenant/i), {
+      target: { value: 'blue-coral-retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/tên branch đầu tiên/i), {
+      target: { value: 'Chi nhanh Quan 1' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug branch/i), {
+      target: { value: 'chi-nhanh-quan-1' },
+    });
+    fireEvent.change(screen.getByLabelText(/mã branch/i), {
+      target: { value: 'Q1' },
+    });
+    fireEvent.change(screen.getByLabelText(/locale/i), {
+      target: { value: 'vi-VN' },
+    });
+    fireEvent.change(screen.getByLabelText(/currency/i), {
+      target: { value: 'VND' },
+    });
+    fireEvent.change(screen.getByLabelText(/timezone/i), {
+      target: { value: 'Asia/Ho_Chi_Minh' },
+    });
+
+    fireEvent.click(
+      screen.getAllByRole('button', { name: /mở bước readiness và kiểm tra/i })[0],
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /xem review trước khi publish/i }),
+    );
+
+    const reviewPanel = screen.getByRole('region', { name: /review summary panel/i });
+
+    fireEvent.click(
+      within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+      ).toBeDisabled();
+    });
+
+    fireEvent.change(screen.getByLabelText(/tên tenant/i), {
+      target: { value: 'Blue Coral Retail Updated' },
+    });
+
+    expect(
+      within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+    ).toBeDisabled();
+  });
+
+  it('clears the blocked review state only when the admin updates the blocking field', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        error: {
+          code: 'tenant-already-exists',
+          message: 'Slug tenant đã tồn tại.',
+          requestId: 'req-field-blocked',
+          details: [
+            {
+              field: 'tenantSlug',
+              message: 'Slug tenant đã tồn tại.',
+            },
+          ],
+        },
+      }),
+    });
+
+    render(<TenantSetupPage />);
+
+    fireEvent.change(screen.getByLabelText(/tên tenant/i), {
+      target: { value: 'Blue Coral Retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug tenant/i), {
+      target: { value: 'blue-coral-retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/tên branch đầu tiên/i), {
+      target: { value: 'Chi nhanh Quan 1' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug branch/i), {
+      target: { value: 'chi-nhanh-quan-1' },
+    });
+    fireEvent.change(screen.getByLabelText(/mã branch/i), {
+      target: { value: 'Q1' },
+    });
+    fireEvent.change(screen.getByLabelText(/locale/i), {
+      target: { value: 'vi-VN' },
+    });
+    fireEvent.change(screen.getByLabelText(/currency/i), {
+      target: { value: 'VND' },
+    });
+    fireEvent.change(screen.getByLabelText(/timezone/i), {
+      target: { value: 'Asia/Ho_Chi_Minh' },
+    });
+
+    fireEvent.click(
+      screen.getAllByRole('button', { name: /mở bước readiness và kiểm tra/i })[0],
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /xem review trước khi publish/i }),
+    );
+
+    const reviewPanel = screen.getByRole('region', { name: /review summary panel/i });
+
+    fireEvent.click(
+      within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+      ).toBeDisabled();
+    });
+
+    fireEvent.change(screen.getByLabelText(/tên tenant/i), {
+      target: { value: 'Blue Coral Retail Updated' },
+    });
+
+    expect(
+      within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+    ).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText(/slug tenant/i), {
+      target: { value: 'blue-coral-retail-updated' },
+    });
+
+    expect(
+      within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+    ).toBeEnabled();
+  });
+
+  it('prevents duplicate publish actions after provisioning succeeds', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          tenantId: 'tenant-001',
+          branchId: 'branch-001',
+          tenant: {
+            name: 'Blue Coral Retail',
+            slug: 'blue-coral-retail',
+          },
+          branch: {
+            name: 'Chi nhanh Quan 1',
+            slug: 'chi-nhanh-quan-1',
+            code: 'Q1',
+          },
+        },
+        meta: {
+          requestId: 'req-001',
+          scope: 'system-admin',
+        },
+      }),
+    });
+
+    render(<TenantSetupPage />);
+
+    fireEvent.change(screen.getByLabelText(/tên tenant/i), {
+      target: { value: 'Blue Coral Retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug tenant/i), {
+      target: { value: 'blue-coral-retail' },
+    });
+    fireEvent.change(screen.getByLabelText(/tên branch đầu tiên/i), {
+      target: { value: 'Chi nhanh Quan 1' },
+    });
+    fireEvent.change(screen.getByLabelText(/slug branch/i), {
+      target: { value: 'chi-nhanh-quan-1' },
+    });
+    fireEvent.change(screen.getByLabelText(/mã branch/i), {
+      target: { value: 'Q1' },
+    });
+    fireEvent.change(screen.getByLabelText(/locale/i), {
+      target: { value: 'vi-VN' },
+    });
+    fireEvent.change(screen.getByLabelText(/currency/i), {
+      target: { value: 'VND' },
+    });
+    fireEvent.change(screen.getByLabelText(/timezone/i), {
+      target: { value: 'Asia/Ho_Chi_Minh' },
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /lưu tenant và branch/i,
+      }),
+    );
+
+    const reviewPanel = await screen.findByRole('region', {
+      name: /review summary panel/i,
+    });
+
+    fireEvent.click(
+      within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        within(reviewPanel).getByRole('button', { name: /publish tenant và branch/i }),
+      ).toBeDisabled();
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getAllByRole('button', { name: /publish tenant và branch/i }),
+    ).toHaveLength(1);
+  });
+
   it('syncs server-side field errors back into the readiness checklist', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
       json: async () => ({
         error: {
-          code: 'tenantSlugTaken',
+          code: 'tenant-already-exists',
           message: 'Không thể lưu tenant/branch.',
           details: [
             {
@@ -373,6 +776,15 @@ describe('Tenant onboarding shell', () => {
     fireEvent.click(
       screen.getByRole('button', {
         name: /lưu tenant và branch/i,
+      }),
+    );
+    fireEvent.click(
+      within(
+        screen.getByRole('region', {
+          name: /review summary panel/i,
+        }),
+      ).getByRole('button', {
+        name: /publish tenant và branch/i,
       }),
     );
 

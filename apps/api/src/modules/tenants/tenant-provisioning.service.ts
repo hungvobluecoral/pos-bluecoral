@@ -44,11 +44,11 @@ export class TenantProvisioningService {
 
     if (validationIssues.length > 0) {
       await this.auditFailure(normalizedPayload.actorId, context.requestId, {
-        code: 'validationFailed',
+        code: 'validation-failed',
         validationIssues,
       });
       throw new BadRequestException({
-        code: 'validationFailed',
+        code: 'validation-failed',
         message: 'Payload provisioning tenant/branch không hợp lệ.',
         details: validationIssues,
       });
@@ -56,11 +56,11 @@ export class TenantProvisioningService {
 
     if (context.scopedTenantId) {
       await this.auditFailure(normalizedPayload.actorId, context.requestId, {
-        code: 'scopeMismatch',
+        code: 'scope-mismatch',
         scopedTenantId: context.scopedTenantId,
       });
       throw new ConflictException({
-        code: 'scopeMismatch',
+        code: 'scope-mismatch',
         message:
           'Provisioning tenant mới không chấp nhận tenant scope đã được gắn sẵn.',
         details: {
@@ -78,7 +78,7 @@ export class TenantProvisioningService {
 
         if (existingTenant) {
           throw new ConflictException({
-            code: 'tenantAlreadyExists',
+            code: 'tenant-already-exists',
             message: 'tenantSlug đã tồn tại.',
             details: {
               tenantSlug: normalizedPayload.tenantSlug,
@@ -150,7 +150,7 @@ export class TenantProvisioningService {
       }
 
       await this.auditFailure(normalizedPayload.actorId, context.requestId, {
-        code: 'unexpectedError',
+        code: 'unexpected-error',
         message: error instanceof Error ? error.message : 'unknown',
       });
       this.logger.error(
@@ -189,14 +189,14 @@ export class TenantProvisioningService {
 
     if (targets.includes('slug')) {
       return new ConflictException({
-        code: 'tenantAlreadyExists',
+        code: 'tenant-already-exists',
         message: 'tenantSlug đã tồn tại.',
       });
     }
 
     if (targets.includes('code')) {
       return new ConflictException({
-        code: 'branchAlreadyExists',
+        code: 'branch-already-exists',
         message: 'branchCode đã tồn tại trong tenant.',
       });
     }

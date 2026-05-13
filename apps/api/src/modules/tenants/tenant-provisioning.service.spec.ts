@@ -1,4 +1,3 @@
-import { BadRequestException, ConflictException } from '@nestjs/common';
 import { AuditService } from '../audit/audit.service';
 import { BranchesRepository } from '../branches/repositories/branches.repository';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
@@ -52,11 +51,18 @@ describe('TenantProvisioningService', () => {
           requestId: 'req-invalid',
         },
       ),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({
+        code: 'validation-failed',
+      }),
+    });
 
     expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(auditService.recordProvisioning).toHaveBeenCalledWith(
       expect.objectContaining({
+        details: expect.objectContaining({
+          code: 'validation-failed',
+        }),
         outcome: 'failure',
         requestId: 'req-invalid',
       }),
@@ -82,11 +88,18 @@ describe('TenantProvisioningService', () => {
           scopedTenantId: 'tenant-already-scoped',
         },
       ),
-    ).rejects.toBeInstanceOf(ConflictException);
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({
+        code: 'scope-mismatch',
+      }),
+    });
 
     expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(auditService.recordProvisioning).toHaveBeenCalledWith(
       expect.objectContaining({
+        details: expect.objectContaining({
+          code: 'scope-mismatch',
+        }),
         outcome: 'failure',
         requestId: 'req-scope',
       }),
@@ -194,7 +207,7 @@ describe('TenantProvisioningService', () => {
       expect.objectContaining({
         actorId: 'system-admin',
         details: expect.objectContaining({
-          code: 'unexpectedError',
+          code: 'unexpected-error',
           message: 'database offline',
         }),
         outcome: 'failure',

@@ -124,7 +124,7 @@ describe('Tenant provisioning API', () => {
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
       error: {
-        code: 'validationFailed',
+        code: 'validation-failed',
         message: expect.any(String),
         requestId: expect.any(String),
         details: expect.anything(),
@@ -166,7 +166,7 @@ describe('Tenant provisioning API', () => {
     expect(response.status).toBe(409);
     expect(response.body).toMatchObject({
       error: {
-        code: 'tenantAlreadyExists',
+        code: 'tenant-already-exists',
         message: expect.any(String),
         requestId: expect.any(String),
       },
@@ -192,7 +192,7 @@ describe('Tenant provisioning API', () => {
     expect(response.status).toBe(409);
     expect(response.body).toMatchObject({
       error: {
-        code: 'scopeMismatch',
+        code: 'scope-mismatch',
         message: expect.any(String),
         requestId: expect.any(String),
       },

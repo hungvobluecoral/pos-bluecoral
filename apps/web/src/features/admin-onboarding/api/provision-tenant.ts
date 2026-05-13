@@ -38,7 +38,7 @@ export async function provisionTenant(
   if (!response.ok) {
     if (!isApiErrorResponse(body)) {
       throw new ProvisionTenantApiError({
-        code: 'invalidErrorEnvelope',
+        code: 'invalid-error-envelope',
         message: 'Phan hoi loi tu provisioning API khong dung dinh dang.',
       });
     }
@@ -48,7 +48,7 @@ export async function provisionTenant(
 
   if (isApiErrorResponse(body)) {
     throw new ProvisionTenantApiError({
-      code: 'invalidSuccessEnvelope',
+      code: 'invalid-success-envelope',
       message: 'Phan hoi thanh cong tu provisioning API khong dung dinh dang.',
     });
   }

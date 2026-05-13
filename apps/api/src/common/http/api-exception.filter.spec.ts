@@ -16,7 +16,7 @@ describe('ApiExceptionFilter', () => {
     filter.catch(
       new HttpException(
         {
-          code: 'validationFailed',
+          code: 'validation-failed',
           error: 'Bad Request',
           message: ['tenantName should not be empty'],
         },
@@ -28,7 +28,7 @@ describe('ApiExceptionFilter', () => {
     expect(status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
     expect(json).toHaveBeenCalledWith({
       error: {
-        code: 'validationFailed',
+        code: 'validation-failed',
         details: {
           error: 'Bad Request',
           message: ['tenantName should not be empty'],

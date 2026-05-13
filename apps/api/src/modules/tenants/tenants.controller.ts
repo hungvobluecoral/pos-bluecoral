@@ -65,7 +65,7 @@ export class TenantsController {
     schema: {
       example: {
         error: {
-          code: 'validationFailed',
+          code: 'validation-failed',
           details: [{ field: 'tenantSlug', message: 'tenantSlug phải ở dạng kebab-case.' }],
           message: 'Payload provisioning tenant/branch không hợp lệ.',
           requestId: 'req-example',
@@ -78,7 +78,7 @@ export class TenantsController {
     schema: {
       example: {
         error: {
-          code: 'tenantAlreadyExists',
+          code: 'tenant-already-exists',
           message: 'tenantSlug đã tồn tại.',
           requestId: 'req-example',
         },

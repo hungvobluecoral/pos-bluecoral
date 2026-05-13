@@ -8,7 +8,11 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { ApiErrorBody, ProvisionTenantRequest } from '@pos-bluecoral/contracts';
+import type {
+  ApiErrorBody,
+  ProvisionTenantErrorCode,
+  ProvisionTenantRequest,
+} from '@pos-bluecoral/contracts';
 import { buttonClassName } from '../../../components/ui/button';
 import {
   ProvisionTenantApiError,
@@ -20,6 +24,7 @@ import {
   validateProvisionTenantForm,
 } from '../schemas/provision-tenant-form';
 import { ReadinessPanel, type ReadinessItem } from './readiness-panel';
+import { ReviewSummaryPanel, type ReviewSummaryState } from './review-summary-panel';
 import { ScopeHeader } from './scope-header';
 import { SetupStepper, type SetupStep } from './setup-wizard-stepper';
 
@@ -31,7 +36,13 @@ type ProvisioningContextState = {
   tenantName?: string;
 };
 
-type WizardStepId = 'branch' | 'readiness' | 'tenant';
+type ReviewBlockState = {
+  code: ProvisionTenantErrorCode | string;
+  fields: Array<keyof ProvisionTenantRequest>;
+  message: string;
+};
+
+type WizardStepId = 'branch' | 'readiness' | 'review' | 'tenant';
 
 const tenantStepFields: Array<keyof ProvisionTenantRequest> = [
   'tenantName',
@@ -50,12 +61,14 @@ const branchStepFields: Array<keyof ProvisionTenantRequest> = [
 const wizardStepLabels: Record<WizardStepId, string> = {
   branch: 'Branch đầu tiên',
   readiness: 'Readiness và kiểm tra',
+  review: 'Review và publish',
   tenant: 'Tenant cơ bản',
 };
 
 const wizardStepTitles: Record<string, WizardStepId> = {
   'Branch đầu tiên': 'branch',
   'Readiness và kiểm tra': 'readiness',
+  'Review và publish': 'review',
   'Tenant cơ bản': 'tenant',
 };
 
@@ -150,6 +163,7 @@ export function TenantProvisioningShell() {
   const [isStepperExpanded, setIsStepperExpanded] = useState(true);
   const [currentStep, setCurrentStep] = useState<WizardStepId>('tenant');
   const [contextState, setContextState] = useState<ProvisioningContextState>({});
+  const [reviewBlock, setReviewBlock] = useState<ReviewBlockState | null>(null);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
   const hasProvisionedContext = Boolean(
@@ -206,6 +220,11 @@ export function TenantProvisioningShell() {
           state: 'completed',
           title: 'Readiness và kiểm tra',
         },
+        {
+          detail: 'Review summary đã xác nhận scope và branch đã được publish thành công.',
+          state: 'completed',
+          title: 'Review và publish',
+        },
       ];
     }
 
@@ -242,13 +261,31 @@ export function TenantProvisioningShell() {
               : 'blocked',
         title: 'Readiness và kiểm tra',
       },
+      {
+        blockingReason:
+          currentStep === 'review' || allWizardInputsReady
+            ? undefined
+            : 'Readiness phải đủ điều kiện trước khi mở review summary.',
+        detail: allWizardInputsReady
+          ? 'Review summary đã có thể tổng hợp impact, risk note và publish action.'
+          : 'Review summary chỉ mở khi wizard đã đủ tenant, branch và config nền.',
+        state:
+          currentStep === 'review'
+            ? 'active'
+            : allWizardInputsReady
+              ? 'ready'
+              : 'blocked',
+        title: 'Review và publish',
+      },
     ];
   }, [allWizardInputsReady, currentStep, hasProvisionedContext, tenantStepReady]);
 
   const currentReadinessLabel = hasProvisionedContext
     ? 'Đã hoàn tất'
     : allWizardInputsReady
-      ? 'Sẵn sàng kiểm tra'
+      ? currentStep === 'review'
+        ? 'Sẵn sàng publish'
+        : 'Sẵn sàng kiểm tra'
       : currentStep === 'tenant'
         ? 'Chưa sẵn sàng'
         : 'Đang hoàn thiện';
@@ -350,6 +387,93 @@ export function TenantProvisioningShell() {
     return allWizardInputsReady;
   };
 
+  const reviewSummary = useMemo(
+    () => ({
+      branch: [
+        {
+          label: 'Tên branch',
+          value: formValues.branchName.trim() || 'Chưa có tên branch',
+        },
+        {
+          label: 'Slug branch',
+          value: formValues.branchSlug.trim() || 'Chưa có slug branch',
+        },
+        {
+          label: 'Mã branch',
+          value: formValues.branchCode.trim().toUpperCase() || 'Chưa có mã branch',
+        },
+      ],
+      config: [
+        {
+          label: 'Locale',
+          value: formValues.locale.trim() || 'Chưa có locale',
+        },
+        {
+          label: 'Currency',
+          value: formValues.currency.trim() || 'Chưa có currency',
+        },
+        {
+          label: 'Timezone',
+          value: formValues.timezone.trim() || 'Chưa có timezone',
+        },
+      ],
+      tenant: [
+        {
+          label: 'Tên tenant',
+          value: formValues.tenantName.trim() || 'Chưa có tên tenant',
+        },
+        {
+          label: 'Slug tenant',
+          value: formValues.tenantSlug.trim() || 'Chưa có slug tenant',
+        },
+      ],
+    }),
+    [formValues],
+  );
+
+  const changedItems = useMemo(
+    () => [
+      { label: 'Tenant name', value: reviewSummary.tenant[0].value },
+      { label: 'Tenant slug', value: reviewSummary.tenant[1].value },
+      { label: 'Branch name', value: reviewSummary.branch[0].value },
+      { label: 'Branch slug', value: reviewSummary.branch[1].value },
+      { label: 'Branch code', value: reviewSummary.branch[2].value },
+      { label: 'Locale', value: reviewSummary.config[0].value },
+      { label: 'Currency', value: reviewSummary.config[1].value },
+      { label: 'Timezone', value: reviewSummary.config[2].value },
+    ],
+    [reviewSummary],
+  );
+
+  const capabilityImpacts = useMemo(
+    () => [
+      {
+        detail:
+          'Sẽ dùng tenant slug và context hiện tại làm scope nền cho các module sau.',
+        title: 'Tenant governance',
+      },
+      {
+        detail:
+          'Chỉ nên mở khi branch code, locale, currency và timezone đã được review rõ ràng.',
+        title: 'Branch checkout',
+      },
+    ],
+    [],
+  );
+
+  const reviewRiskNote = hasProvisionedContext
+    ? 'Branch đầu tiên đã được publish thành công; review này giữ lại ý nghĩa vận hành của scope vừa tạo.'
+    : allWizardInputsReady
+      ? 'Scope hiện tại đã đủ dữ liệu nền, nhưng admin vẫn cần review impact trước khi publish.'
+      : 'Review vẫn có nguy cơ bị block nếu readiness hoặc scope chưa nhất quán.';
+
+  const reviewSummaryState = useMemo((): ReviewSummaryState => {
+    if (hasProvisionedContext) return 'success';
+    if (currentStep !== 'review') return 'warning';
+    if (!allWizardInputsReady || reviewBlock) return 'blocked';
+    return 'review-ready';
+  }, [allWizardInputsReady, currentStep, hasProvisionedContext, reviewBlock]);
+
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
 
@@ -361,6 +485,11 @@ export function TenantProvisioningShell() {
       ...current,
       [name]: undefined,
     }));
+
+    if (reviewBlock?.fields.includes(name as keyof ProvisionTenantRequest)) {
+      setReviewBlock(null);
+      setFormError(null);
+    }
   };
 
   const moveToBranchStep = () => {
@@ -392,9 +521,27 @@ export function TenantProvisioningShell() {
     }
   };
 
+  const moveToReviewStep = () => {
+    const nextErrors = validateProvisionTenantForm(formValues);
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      return;
+    }
+
+    setFieldErrors({});
+    setCurrentStep('review');
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (currentStep !== 'review') {
+      moveToReviewStep();
+      return;
+    }
+
     setFormError(null);
+    setReviewBlock(null);
 
     const nextErrors = validateProvisionTenantForm(formValues);
     if (Object.keys(nextErrors).length > 0) {
@@ -418,16 +565,29 @@ export function TenantProvisioningShell() {
         tenantName: response.data.tenant.name,
       });
       setFieldErrors({});
-      setCurrentStep('readiness');
+      setCurrentStep('review');
     } catch (error) {
       if (error instanceof ProvisionTenantApiError) {
         const apiFieldErrors = mapApiErrors(error.payload);
+        const blockingFields = Object.entries(apiFieldErrors)
+          .filter(([, message]) => Boolean(message))
+          .map(([fieldName]) => fieldName as keyof ProvisionTenantRequest);
         if (Object.keys(apiFieldErrors).length > 0) {
           setFieldErrors(apiFieldErrors);
         }
 
+        setReviewBlock({
+          code: error.payload.code,
+          fields: blockingFields,
+          message: error.payload.message,
+        });
         setFormError(error.payload.message);
       } else {
+        setReviewBlock({
+          code: 'unexpected-error',
+          fields: [],
+          message: 'Không thể lưu tenant/branch ở thời điểm này.',
+        });
         setFormError('Không thể lưu tenant/branch ở thời điểm này.');
       }
     } finally {
@@ -470,6 +630,8 @@ export function TenantProvisioningShell() {
               <h2 ref={stepHeadingRef} tabIndex={-1} className="text-xl font-semibold text-white">
                 {currentStep === 'branch'
                   ? 'Cấu hình branch đầu tiên'
+                  : currentStep === 'review'
+                    ? 'Review trước khi publish'
                   : currentStep === 'readiness'
                     ? 'Kiểm tra readiness trước khi lưu'
                     : 'Provision tenant va branch dau tien'}
@@ -477,6 +639,8 @@ export function TenantProvisioningShell() {
               <p className="max-w-3xl text-sm text-slate-300">
                 {currentStep === 'branch'
                   ? 'Bước này giữ branch context rõ ràng trước khi wizard tổng hợp readiness.'
+                  : currentStep === 'review'
+                    ? 'Review summary tổng hợp scope, changed items, readiness và capability impact trước khi publish.'
                   : currentStep === 'readiness'
                     ? 'Readiness tóm tắt các điều kiện còn thiếu trước khi gửi provisioning.'
                     : 'Form này giữ source of truth cho tenant/branch context để Story 1.3 tiếp tục mở rộng wizard, readiness và review mà không mất scope.'}
@@ -485,6 +649,25 @@ export function TenantProvisioningShell() {
                 <p className="text-sm text-rose-300">{formError}</p>
               ) : null}
             </div>
+
+            {currentStep === 'review' ? (
+              <div className="mb-6">
+                <ReviewSummaryPanel
+                  capabilityImpacts={capabilityImpacts}
+                  changedItems={changedItems}
+                  readinessItems={readinessItems}
+                  riskNote={reviewRiskNote}
+                  state={reviewSummaryState}
+                  summary={reviewSummary}
+                  onPublish={() => {
+                    const form = stepHeadingRef.current?.closest('section')?.querySelector('form');
+                    if (form instanceof HTMLFormElement) {
+                      form.requestSubmit();
+                    }
+                  }}
+                />
+              </div>
+            ) : null}
 
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="grid gap-4 md:grid-cols-2">
@@ -556,13 +739,24 @@ export function TenantProvisioningShell() {
                     Tiếp tục tới bước branch
                   </button>
                 ) : null}
-                <button
-                  className={buttonClassName({ size: 'lg' })}
-                  disabled={isSubmitting}
-                  type="submit"
-                >
-                  {isSubmitting ? 'Đang lưu...' : 'Lưu tenant và branch'}
-                </button>
+                {currentStep === 'readiness' ? (
+                  <button
+                  className={buttonClassName({ size: 'lg', variant: 'secondary' })}
+                  type="button"
+                  onClick={moveToReviewStep}
+                  >
+                  Xem review trước khi publish
+                  </button>
+                ) : null}
+                {currentStep === 'review' ? null : (
+                  <button
+                    className={buttonClassName({ size: 'lg' })}
+                    disabled={isSubmitting}
+                    type="submit"
+                  >
+                    {isSubmitting ? 'Đang lưu...' : 'Lưu tenant và branch'}
+                  </button>
+                )}
                 {contextState.requestId ? (
                   <span className="text-sm text-slate-400">
                     RequestId: {contextState.requestId}
