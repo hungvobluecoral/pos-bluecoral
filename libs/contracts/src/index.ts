@@ -18,3 +18,5 @@ export interface ApiErrorBody {
 export interface ApiErrorResponse {
   error: ApiErrorBody;
 }
+
+export * from './tenants';

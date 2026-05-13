@@ -1,10 +1,42 @@
-const readinessItems = [
-  'Xác nhận scope tenant/branch',
-  'Kiểm tra local stack',
-  'Swagger và contract scaffold',
-] as const;
+interface ReadinessPanelProps {
+  hasProvisionedContext?: boolean;
+  readinessItems?: {
+    contractReady: boolean;
+    scopeReady: boolean;
+  };
+}
 
-export function ReadinessPanel() {
+export function ReadinessPanel({
+  hasProvisionedContext,
+  readinessItems,
+}: ReadinessPanelProps) {
+  const resolvedReadiness = readinessItems ?? {
+    contractReady: false,
+    scopeReady: false,
+  };
+
+  const items = [
+    {
+      description: hasProvisionedContext
+        ? 'Tenant/branch context đã được cập nhật từ response provisioning.'
+        : 'Placeholder cho checklist scope-aware/readiness-aware.',
+      done: resolvedReadiness.scopeReady,
+      title: 'Xác nhận scope tenant/branch',
+    },
+    {
+      description: 'Docker dev stack vẫn là baseline để kiểm tra local runtime.',
+      done: true,
+      title: 'Kiểm tra local stack',
+    },
+    {
+      description: hasProvisionedContext
+        ? 'Provisioning API đã trả envelope chuẩn để wizard bước sau tiêu thụ.'
+        : 'Placeholder cho checklist scope-aware/readiness-aware.',
+      done: resolvedReadiness.contractReady,
+      title: 'Swagger và contract scaffold',
+    },
+  ];
+
   return (
     <aside
       aria-label="Bảng readiness tenant"
@@ -24,19 +56,21 @@ export function ReadinessPanel() {
       </div>
 
       <ul className="mt-5 space-y-3">
-        {readinessItems.map((item) => (
+        {items.map((item) => (
           <li
-            key={item}
+            key={item.title}
             className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4"
           >
             <span
               aria-hidden="true"
-              className="mt-1 size-2 rounded-full bg-amber-300"
+              className={`mt-1 size-2 rounded-full ${
+                item.done ? 'bg-emerald-300' : 'bg-amber-300'
+              }`}
             />
             <div>
-              <p className="font-medium text-white">{item}</p>
+              <p className="font-medium text-white">{item.title}</p>
               <p className="mt-1 text-sm text-slate-400">
-                Placeholder cho checklist scope-aware/readiness-aware.
+                {item.description}
               </p>
             </div>
           </li>

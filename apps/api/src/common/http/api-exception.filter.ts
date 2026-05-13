@@ -21,7 +21,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const code = this.resolveCode(status);
+    const code = this.resolveCode(exception, status);
     const message = this.resolveMessage(exception, status);
     const details =
       exception instanceof HttpException
@@ -31,7 +31,19 @@ export class ApiExceptionFilter implements ExceptionFilter {
     response.status(status).json(errorResponse(code, message, requestId, details));
   }
 
-  private resolveCode(status: number) {
+  private resolveCode(exception: unknown, status: number) {
+    if (exception instanceof HttpException) {
+      const response = exception.getResponse();
+      if (
+        typeof response === 'object' &&
+        response !== null &&
+        'code' in response &&
+        typeof response.code === 'string'
+      ) {
+        return response.code;
+      }
+    }
+
     switch (status) {
       case HttpStatus.BAD_REQUEST:
         return 'badRequest';
@@ -82,10 +94,20 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return undefined;
     }
 
-    if ('message' in response) {
-      return response;
+    if ('details' in response) {
+      return response.details;
     }
 
-    return undefined;
+    const fallbackDetails: Record<string, unknown> = {};
+
+    if ('error' in response) {
+      fallbackDetails.error = response.error;
+    }
+
+    if ('message' in response && Array.isArray(response.message)) {
+      fallbackDetails.message = response.message;
+    }
+
+    return Object.keys(fallbackDetails).length > 0 ? fallbackDetails : undefined;
   }
 }

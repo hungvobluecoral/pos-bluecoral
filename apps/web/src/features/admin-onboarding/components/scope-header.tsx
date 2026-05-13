@@ -1,4 +1,19 @@
-export function ScopeHeader() {
+interface ScopeHeaderProps {
+  branchId?: string;
+  branchName?: string;
+  tenantId?: string;
+  tenantName?: string;
+}
+
+export function ScopeHeader({
+  branchId,
+  branchName,
+  tenantId,
+  tenantName,
+}: ScopeHeaderProps) {
+  const resolvedTenantName = tenantName ?? 'Tenant chưa được tạo';
+  const resolvedBranchName = branchName ?? 'Branch mặc định đang chờ cấu hình';
+
   return (
     <section
       aria-label="Tenant và branch scope"
@@ -24,16 +39,22 @@ export function ScopeHeader() {
               Tenant
             </p>
             <p className="mt-2 text-base font-semibold text-white">
-              Tenant chưa được tạo
+              {resolvedTenantName}
             </p>
+            {tenantId ? (
+              <p className="mt-2 text-xs text-slate-400">ID: {tenantId}</p>
+            ) : null}
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
               Branch
             </p>
             <p className="mt-2 text-base font-semibold text-white">
-              Branch mặc định đang chờ cấu hình
+              {resolvedBranchName}
             </p>
+            {branchId ? (
+              <p className="mt-2 text-xs text-slate-400">ID: {branchId}</p>
+            ) : null}
           </div>
         </div>
       </div>

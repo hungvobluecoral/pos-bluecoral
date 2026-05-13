@@ -1,6 +1,6 @@
 # Story 1.2: Tạo tenant và branch đầu tiên với nền dữ liệu đúng scope
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -30,39 +30,45 @@ so that a new business unit starts from a correct operational structure.
 
 ## Tasks / Subtasks
 
-- [ ] Khóa prerequisite từ Story 1.1 trước khi viết business logic (AC: 1, 2, 3, 4, 5)
-  - [ ] Xác minh source tree thực tế đã có workspace foundation của Story 1.1: Nx monorepo, `apps/web`, `apps/api`, `libs/contracts`, Docker dev stack, REST/OpenAPI scaffold.
-  - [ ] Nếu foundation chưa tồn tại trong source, **không** tạo ad-hoc cấu trúc khác để “lách” Story 1.2; phải triển khai hoặc rebase trên output thật của Story 1.1 trước.
-  - [ ] Giữ nguyên các conventions từ Story 1.1: App Router, Nest module boundaries, REST envelope, feature-first admin onboarding shell.
-- [ ] Thiết kế và triển khai persistence tenant-first / branch-first bằng Prisma (AC: 1, 2)
-  - [ ] Cập nhật `apps/api/prisma/schema.prisma` với các model tối thiểu cho `tenants`, `branches` và configuration foundation cần thiết cho onboarding ban đầu.
-  - [ ] Bảo đảm branch luôn thuộc đúng tenant; không model branch như metadata rời.
-  - [ ] Thêm unique constraints / indexes tối thiểu cho định danh tenant, branch và tra cứu theo scope.
-  - [ ] Tạo Prisma migration version-controlled; không chỉnh schema “tay” mà thiếu migration.
-- [ ] Xây backend provisioning flow cho tenant + branch đầu tiên (AC: 1, 2, 4)
-  - [ ] Tạo hoặc mở rộng `tenants` module và `branches` module theo boundary `controllers/`, `services/`, `repositories/`, `dto/`, `entities/`.
-  - [ ] Dùng application service rõ ràng cho flow tạo tenant cùng branch đầu tiên; không cho controller thao tác Prisma trực tiếp.
-  - [ ] Đảm bảo transaction hoặc orchestration backend không để tenant được tạo thành công nhưng branch/config nền ở trạng thái mồ côi.
-  - [ ] Chuẩn hóa các conflict/error cases cho dữ liệu trùng, payload không hợp lệ, hoặc scope mismatch với error code ổn định.
-- [ ] Chuẩn hóa API contract, OpenAPI và shared contracts cho provisioning (AC: 3, 4)
-  - [ ] Định nghĩa request/response DTOs và shared contracts ở `libs/contracts` nếu thực sự được dùng bởi cả web và api.
-  - [ ] Trả success envelope đúng chuẩn `{ data, meta? }` với `tenantId`, `branchId` và dữ liệu tối thiểu phục vụ các bước tiếp theo của onboarding.
-  - [ ] Trả error envelope đúng chuẩn `{ error: { code, message, details?, requestId? } }` cho validation, conflict và scope failures.
-  - [ ] Cập nhật OpenAPI/Swagger cho endpoint provisioning; không để contract chỉ tồn tại “ngầm” trong code.
-- [ ] Gắn request correlation và audit logging cho provisioning (AC: 5)
-  - [ ] Tận dụng hoặc bổ sung requestId/correlation ở bootstrap/common layer theo patterns đã chốt.
-  - [ ] Ghi audit record cho provisioning success và các failure path cần điều tra, tối thiểu gồm actorId, tenantId, branchId, action, requestId.
-  - [ ] Không swallow lỗi; structured log và audit log phải phân vai rõ giữa vận hành và truy vết.
-- [ ] Nối onboarding UI hiện có với provisioning API theo scope nhất quán (AC: 3, 4)
-  - [ ] Mở rộng `apps/web/src/features/admin-onboarding/*` thay vì đẩy sớm logic vào shared UI.
-  - [ ] Thêm form/schema/mutation tối thiểu để admin nhập tenant + branch đầu tiên và submit qua feature API layer.
-  - [ ] Giữ `tenantId` / `branchId` trong flow state theo source of truth rõ ràng; không duplicate mơ hồ qua nhiều store.
-  - [ ] Hiển thị inline validation / error feedback gắn với đúng field hoặc bước liên quan, chuẩn bị nền cho Story 1.3.
-- [ ] Bổ sung test chứng minh correctness và guardrails (AC: 1, 2, 3, 4, 5)
-  - [ ] Unit tests cho service provisioning, validation logic, error mapping và audit behavior.
-  - [ ] Integration tests cho API + Prisma flow: success path, duplicate/conflict path, invalid payload, scope-related failures.
-  - [ ] Kiểm tra response/error envelopes và sự hiện diện của `requestId`.
-  - [ ] Nếu web foundation đã có test setup từ Story 1.1, thêm tests cho mutation/form handling để bảo đảm context được giữ đúng sau provisioning.
+- [x] Khóa prerequisite từ Story 1.1 trước khi viết business logic (AC: 1, 2, 3, 4, 5)
+  - [x] Xác minh source tree thực tế đã có workspace foundation của Story 1.1: Nx monorepo, `apps/web`, `apps/api`, `libs/contracts`, Docker dev stack, REST/OpenAPI scaffold.
+  - [x] Nếu foundation chưa tồn tại trong source, **không** tạo ad-hoc cấu trúc khác để “lách” Story 1.2; phải triển khai hoặc rebase trên output thật của Story 1.1 trước.
+  - [x] Giữ nguyên các conventions từ Story 1.1: App Router, Nest module boundaries, REST envelope, feature-first admin onboarding shell.
+- [x] Thiết kế và triển khai persistence tenant-first / branch-first bằng Prisma (AC: 1, 2)
+  - [x] Cập nhật `apps/api/prisma/schema.prisma` với các model tối thiểu cho `tenants`, `branches` và configuration foundation cần thiết cho onboarding ban đầu.
+  - [x] Bảo đảm branch luôn thuộc đúng tenant; không model branch như metadata rời.
+  - [x] Thêm unique constraints / indexes tối thiểu cho định danh tenant, branch và tra cứu theo scope.
+  - [x] Tạo Prisma migration version-controlled; không chỉnh schema “tay” mà thiếu migration.
+- [x] Xây backend provisioning flow cho tenant + branch đầu tiên (AC: 1, 2, 4)
+  - [x] Tạo hoặc mở rộng `tenants` module và `branches` module theo boundary `controllers/`, `services/`, `repositories/`, `dto/`, `entities/`.
+  - [x] Dùng application service rõ ràng cho flow tạo tenant cùng branch đầu tiên; không cho controller thao tác Prisma trực tiếp.
+  - [x] Đảm bảo transaction hoặc orchestration backend không để tenant được tạo thành công nhưng branch/config nền ở trạng thái mồ côi.
+  - [x] Chuẩn hóa các conflict/error cases cho dữ liệu trùng, payload không hợp lệ, hoặc scope mismatch với error code ổn định.
+- [x] Chuẩn hóa API contract, OpenAPI và shared contracts cho provisioning (AC: 3, 4)
+  - [x] Định nghĩa request/response DTOs và shared contracts ở `libs/contracts` nếu thực sự được dùng bởi cả web và api.
+  - [x] Trả success envelope đúng chuẩn `{ data, meta? }` với `tenantId`, `branchId` và dữ liệu tối thiểu phục vụ các bước tiếp theo của onboarding.
+  - [x] Trả error envelope đúng chuẩn `{ error: { code, message, details?, requestId? } }` cho validation, conflict và scope failures.
+  - [x] Cập nhật OpenAPI/Swagger cho endpoint provisioning; không để contract chỉ tồn tại “ngầm” trong code.
+- [x] Gắn request correlation và audit logging cho provisioning (AC: 5)
+  - [x] Tận dụng hoặc bổ sung requestId/correlation ở bootstrap/common layer theo patterns đã chốt.
+  - [x] Ghi audit record cho provisioning success và các failure path cần điều tra, tối thiểu gồm actorId, tenantId, branchId, action, requestId.
+  - [x] Không swallow lỗi; structured log và audit log phải phân vai rõ giữa vận hành và truy vết.
+- [x] Nối onboarding UI hiện có với provisioning API theo scope nhất quán (AC: 3, 4)
+  - [x] Mở rộng `apps/web/src/features/admin-onboarding/*` thay vì đẩy sớm logic vào shared UI.
+  - [x] Thêm form/schema/mutation tối thiểu để admin nhập tenant + branch đầu tiên và submit qua feature API layer.
+  - [x] Giữ `tenantId` / `branchId` trong flow state theo source of truth rõ ràng; không duplicate mơ hồ qua nhiều store.
+  - [x] Hiển thị inline validation / error feedback gắn với đúng field hoặc bước liên quan, chuẩn bị nền cho Story 1.3.
+- [x] Bổ sung test chứng minh correctness và guardrails (AC: 1, 2, 3, 4, 5)
+  - [x] Unit tests cho service provisioning, validation logic, error mapping và audit behavior.
+  - [x] Integration tests cho API + Prisma flow: success path, duplicate/conflict path, invalid payload, scope-related failures.
+  - [x] Kiểm tra response/error envelopes và sự hiện diện của `requestId`.
+  - [x] Nếu web foundation đã có test setup từ Story 1.1, thêm tests cho mutation/form handling để bảo đảm context được giữ đúng sau provisioning.
+
+### Review Findings
+
+- [x] [Review][Patch] Api exception filter drops standard Nest error details [apps/api/src/common/http/api-exception.filter.ts:92]
+- [x] [Review][Patch] Prisma client generation is not wired into a clean install/build path [package.json:7]
+- [x] [Review][Patch] Test suite stubs `global.fetch` without restoring the original implementation [apps/web/src/app/(admin)/setup/tenants/new/page.spec.tsx:5]
 
 ## Dev Notes
 
@@ -239,14 +245,57 @@ GPT-5.4 (model ID: gpt-5.4)
 
 - Story creation workflow synthesis from sprint status, epics, PRD, architecture, UX spec, previous story file, repo inspection, git history, and current framework/version research.
 - Background repo analysis confirmed current repository is documentation-only and does not yet contain the intended Nx workspace source tree.
+- Reconciled the stale story tracker with the real Story 1.2 worktree, then closed the remaining gap by auditing unexpected provisioning transaction failures before rethrowing them.
+- Hardened the web provisioning client with explicit envelope type guards so the current WIP source builds cleanly under production Next.js settings.
+- Full validation for this story completed with `NODE_ENV=production pnpm build && pnpm test && pnpm lint` because the shared shell environment injects a non-standard `NODE_ENV` value that breaks Next.js prerendering outside production mode.
 
 ### Completion Notes List
 
 - Ultimate context engine analysis completed - comprehensive developer guide created.
 - Story explicitly calls out the mismatch between planning state and actual repository state so the dev agent does not implement against imaginary files.
 - Story keeps 1.2 focused on tenant/branch persistence, contracts, auditability and onboarding submission, while preserving Story 1.3/1.4 scope.
+- Verified Story 1.1 foundation exists in the current repo: Nx workspace, `apps/web`, `apps/api`, `libs/contracts`, Docker dev stack, request-id/error envelope middleware, Swagger scaffold, and onboarding shell are present; actual backend root module path is `apps/api/src/app/app.module.ts`.
+- Completed Story 1.2 against the existing WIP source by validating Prisma persistence, transaction-scoped provisioning, REST envelopes, request correlation, audit logging, and onboarding UI wiring.
+- Added failure-audit coverage for unexpected backend transaction errors and hardened the web API client response typing to keep the provisioning flow build-safe.
+- Confirmed story-level behavior through API, service, and onboarding UI tests, then re-validated the repository with build, test, and lint.
 
 ### File List
 
+- `apps/api/prisma/migrations/20260513045810_create_tenant_branch_foundation/migration.sql`
+- `apps/api/prisma/migrations/migration_lock.toml`
+- `apps/api/prisma/schema.prisma`
+- `apps/api/src/app/app.module.ts`
+- `apps/api/src/common/http/api-exception.filter.ts`
+- `apps/api/src/infrastructure/prisma/prisma.module.ts`
+- `apps/api/src/infrastructure/prisma/prisma.service.ts`
+- `apps/api/src/modules/audit/audit.module.ts`
+- `apps/api/src/modules/audit/audit.service.ts`
+- `apps/api/src/modules/audit/repositories/audit-log.repository.ts`
+- `apps/api/src/modules/branches/branches.module.ts`
+- `apps/api/src/modules/branches/repositories/branches.repository.ts`
+- `apps/api/src/modules/tenants/dto/provision-tenant.dto.ts`
+- `apps/api/src/modules/tenants/entities/provision-tenant-response.entity.ts`
+- `apps/api/src/modules/tenants/repositories/tenants.repository.ts`
+- `apps/api/src/modules/tenants/tenant-provisioning.http.spec.ts`
+- `apps/api/src/modules/tenants/tenant-provisioning.service.spec.ts`
+- `apps/api/src/modules/tenants/tenant-provisioning.service.ts`
+- `apps/api/src/modules/tenants/tenants.controller.ts`
+- `apps/api/src/modules/tenants/tenants.module.ts`
+- `apps/web/next-env.d.ts`
+- `apps/web/src/app/(admin)/setup/tenants/new/page.spec.tsx`
+- `apps/web/src/app/(admin)/setup/tenants/new/page.tsx`
+- `apps/web/src/features/admin-onboarding/api/provision-tenant.ts`
+- `apps/web/src/features/admin-onboarding/components/readiness-panel.tsx`
+- `apps/web/src/features/admin-onboarding/components/scope-header.tsx`
+- `apps/web/src/features/admin-onboarding/components/setup-stepper.tsx`
+- `apps/web/src/features/admin-onboarding/components/tenant-provisioning-shell.tsx`
+- `apps/web/src/features/admin-onboarding/schemas/provision-tenant-form.ts`
+- `libs/contracts/src/index.ts`
+- `libs/contracts/src/tenants/index.ts`
+- `libs/contracts/src/tenants/provision-tenant.ts`
 - `_bmad-output/implementation-artifacts/1-2-tao-tenant-va-branch-dau-tien-voi-nen-du-lieu-dung-scope.md`
 - `_bmad-output/implementation-artifacts/sprint-status.yaml`
+
+### Change Log
+
+- 2026-05-13: completed Story 1.2 by reconciling the existing provisioning WIP with the story tracker, adding failure-audit handling for unexpected backend errors, hardening the web API client envelope typing, and validating build/test/lint end to end.

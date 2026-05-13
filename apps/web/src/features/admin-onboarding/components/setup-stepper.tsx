@@ -1,28 +1,58 @@
-const setupSteps = [
-  {
-    title: 'Tenant cơ bản',
-    detail: 'Thu thập thông tin nền để mở rộng story 1.2.',
-    state: 'active',
-  },
-  {
-    title: 'Branch đầu tiên',
-    detail: 'Giữ scope branch rõ ràng trước khi publish.',
-    state: 'blocked',
-  },
-  {
-    title: 'Review và publish',
-    detail: 'Readiness panel sẽ tổng hợp các điều kiện go-live.',
-    state: 'ready',
-  },
-] as const;
+type StepState = 'active' | 'blocked' | 'completed' | 'ready' | 'warning';
 
-const stateClasses: Record<(typeof setupSteps)[number]['state'], string> = {
+const stateClasses: Record<StepState, string> = {
   active: 'border-cyan-300 bg-cyan-400/10 text-cyan-100',
   blocked: 'border-amber-300 bg-amber-400/10 text-amber-100',
+  completed: 'border-emerald-300 bg-emerald-400/10 text-emerald-100',
   ready: 'border-emerald-300 bg-emerald-400/10 text-emerald-100',
+  warning: 'border-violet-300 bg-violet-400/10 text-violet-100',
 };
 
-export function SetupStepper() {
+interface SetupStepperProps {
+  hasProvisionedContext?: boolean;
+}
+
+export function SetupStepper({ hasProvisionedContext }: SetupStepperProps) {
+  const setupSteps: Array<{
+    detail: string;
+    state: StepState;
+    title: string;
+  }> = hasProvisionedContext
+    ? [
+        {
+          title: 'Tenant cơ bản',
+          detail: 'Tenant đầu tiên đã được provision và scope đã được khóa.',
+          state: 'completed',
+        },
+        {
+          title: 'Branch đầu tiên',
+          detail: 'Context branch đã sẵn sàng để Story 1.3 mở rộng wizard.',
+          state: 'active',
+        },
+        {
+          title: 'Review và publish',
+          detail: 'Readiness panel đang chờ các bước tiếp theo của onboarding.',
+          state: 'warning',
+        },
+      ]
+    : [
+        {
+          title: 'Tenant cơ bản',
+          detail: 'Thu thập thông tin nền để mở rộng story 1.2.',
+          state: 'active',
+        },
+        {
+          title: 'Branch đầu tiên',
+          detail: 'Giữ scope branch rõ ràng trước khi publish.',
+          state: 'blocked',
+        },
+        {
+          title: 'Review và publish',
+          detail: 'Readiness panel sẽ tổng hợp các điều kiện go-live.',
+          state: 'ready',
+        },
+      ];
+
   return (
     <nav
       aria-label="Tiến trình onboarding tenant"

@@ -5,11 +5,17 @@
   "scripts": {
     "dev:web": "nx dev web",
     "dev:api": "nx serve api",
+    "postinstall": "pnpm prisma:generate",
     "build": "nx run-many -t build --projects=web,api",
     "test": "NX_DAEMON=false nx run-many -t test --projects=web,api",
-    "lint": "NX_DAEMON=false nx run-many -t lint --projects=web,api"
+    "lint": "NX_DAEMON=false nx run-many -t lint --projects=web,api",
+    "prisma:generate": "prisma generate --schema apps/api/prisma/schema.prisma",
+    "prisma:migrate:deploy": "prisma migrate deploy --schema apps/api/prisma/schema.prisma"
   },
   "private": true,
+  "prisma": {
+    "schema": "apps/api/prisma/schema.prisma"
+  },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
     "@nestjs/schematics": "^11.0.0",
@@ -53,6 +59,7 @@
     "jest-util": "^30.0.2",
     "nx": "22.7.1",
     "prettier": "~3.6.2",
+    "prisma": "^5.22.0",
     "supertest": "^7.2.2",
     "tailwindcss": "^4.3.0",
     "ts-jest": "^29.4.0",
@@ -68,6 +75,7 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/swagger": "^11.4.2",
+    "@prisma/client": "^5.22.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.14.0",

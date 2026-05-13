@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id             String                @id @default(uuid()) @db.Uuid
+  name           String                @map("name")
+  slug           String                @unique(map: "tenants_slug_key")
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  branches       Branch[]
+  configuration  TenantConfiguration?
+
+  @@index([slug], map: "tenants_slug_idx")
+  @@map("tenants")
+}
+
+model TenantConfiguration {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @unique(map: "tenant_configurations_tenant_id_key") @map("tenant_id") @db.Uuid
+  locale      String   @map("locale")
+  currency    String   @map("currency")
+  timezone    String   @map("timezone")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_configurations")
+}
+
+model Branch {
+  id             String                @id @default(uuid()) @db.Uuid
+  tenantId       String                @map("tenant_id") @db.Uuid
+  name           String                @map("name")
+  slug           String                @map("slug")
+  code           String                @map("code")
+  isDefault      Boolean               @default(false) @map("is_default")
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  configuration  BranchConfiguration?
+
+  @@unique([tenantId, slug], map: "branches_tenant_id_slug_key")
+  @@unique([tenantId, code], map: "branches_tenant_id_code_key")
+  @@index([tenantId], map: "branches_tenant_id_idx")
+  @@index([tenantId, slug], map: "branches_tenant_id_slug_idx")
+  @@map("branches")
+}
+
+model BranchConfiguration {
+  id              String   @id @default(uuid()) @db.Uuid
+  branchId        String   @unique(map: "branch_configurations_branch_id_key") @map("branch_id") @db.Uuid
+  readinessStatus String   @default("blocked") @map("readiness_status")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  branch          Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@map("branch_configurations")
+}
+
+model AuditLog {
+  id        String       @id @default(uuid()) @db.Uuid
+  action    String       @map("action")
+  actorId   String       @map("actor_id")
+  tenantId  String?      @map("tenant_id") @db.Uuid
+  branchId  String?      @map("branch_id") @db.Uuid
+  requestId String       @map("request_id")
+  outcome   AuditOutcome @map("outcome")
+  details   Json?        @map("details")
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([requestId], map: "audit_logs_request_id_idx")
+  @@index([tenantId, branchId], map: "audit_logs_tenant_id_branch_id_idx")
+  @@map("audit_logs")
+}
+
+enum AuditOutcome {
+  success
+  failure
+}
